@@ -36,17 +36,34 @@ export default function CreatingAccount() {
     console.log(formData);
     const isSuccess = createAccount(formData);
 
-    isSuccess &&
+    if (isSuccess) {
+      Swal.fire({
+        title: "Account Created Successfuly",
+        timer: 1000,
+        showConfirmButton: false,
+      });
       setFormData({
         userName: "",
         userPassword: "",
       });
+    }
   };
+
   return (
     <>
       <h1>Create Your Account</h1>
 
-      <form onSubmit={handleSubmit}>
+      <form
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "fit-content",
+          alignItems: "center",
+          margin: "0px auto",
+          gap: "5px",
+        }}
+        onSubmit={handleSubmit}
+      >
         <label htmlFor="userName">What is your name</label>
         <input
           type="text"
