@@ -5,13 +5,17 @@ import {
 } from "../../context/ChatContext";
 
 export default function ChatScreenSearchBox() {
-  const { users, loggedInAccount } = useChatDataContext();
+  const { users, loggedInAccount, openedChat } = useChatDataContext();
   const { openChat } = useChatActionsContext();
   const [searchTerm, setSearchTerm] = useState("");
+
+  if (openedChat) return;
 
   const handleChange = (e) => {
     setSearchTerm(e.target.value);
   };
+
+  if (openedChat) return;
   return (
     <>
       <div style={{}}>
@@ -40,7 +44,7 @@ export default function ChatScreenSearchBox() {
                     key={usr.userID}
                     style={{ border: "1px solid silver", height: "20px" }}
                     onClick={() => {
-                      openChat(usr.userName);
+                      openChat(usr.userID);
                       setSearchTerm("");
                     }}
                   >

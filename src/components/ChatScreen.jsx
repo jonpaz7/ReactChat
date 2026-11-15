@@ -1,6 +1,7 @@
 import ChatScreenHeader from "./chatScreenComponents/ChatScreenHeader";
 import ChatScreenChatsList from "./chatScreenComponents/ChatScreenChatsList";
 import ChatScreenSearchBox from "./chatScreenComponents/ChatScreenSearchBox";
+import ChatScreenChat from "./chatScreenComponents/ChatScreenChat";
 
 export default function ChatScreen() {
   return (
@@ -17,6 +18,7 @@ export default function ChatScreen() {
       <ChatScreenHeader />
       <ChatScreenSearchBox />
       <ChatScreenChatsList />
+      <ChatScreenChat />
     </div>
   );
 }

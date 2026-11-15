@@ -73,29 +73,41 @@ export default function ChatContext({ children }) {
     return true;
   };
 
-  const openChat = (userName) => {
+  const openChat = (userID) => {
     let selectedChat = chats.find((chat) => {
       return (
-        chat.participants.includes(loggedInAccount.userName) &&
-        chat.participants.includes(userName)
+        chat.participants.includes(loggedInAccount.userID) &&
+        chat.participants.includes(userID)
       );
     });
 
     if (!selectedChat) {
-      selectedChat = createChat(userName);
+      selectedChat = createChat(userID);
     }
 
     setOpendChatID(selectedChat.chatID);
   };
 
-  const createChat = (userName) => {
+  const createChat = (userID) => {
     const newChat = {
       chatID: `chat_${crypto.randomUUID()}`,
-      participants: [loggedInAccount.userName, userName],
+      participants: [loggedInAccount.userID, userID],
     };
 
     setChats((prevChats) => [...prevChats, newChat]);
     return newChat;
+  };
+
+  const sendMessage = (chatID, messageType, messageContent) => {
+    const newMessage = {
+      messageID: `msg_${crypto.randomUUID()}`,
+      messageSenderID: loggedInAccount.userID,
+      messageType: messageType,
+      messageContent: messageContent,
+      chatID: chatID,
+    };
+
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
   /*========================== Configurations ============================*/
   const chatData = {
@@ -104,8 +116,10 @@ export default function ChatContext({ children }) {
     users,
     openedChat,
     chats,
+    setOpendChatID,
+    messages,
   };
-  const chatActions = { createAccount, loginAccount, openChat };
+  const chatActions = { createAccount, loginAccount, openChat, sendMessage };
 
   return (
     <ChatDataContext.Provider value={chatData}>
