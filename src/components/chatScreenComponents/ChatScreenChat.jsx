@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   useChatDataContext,
   useChatActionsContext,
@@ -11,6 +11,12 @@ export default function ChatScreenChat() {
 
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("text");
+
+  const lastMessages = useRef(null);
+
+  useEffect(() => lastMessages.current?.scrollIntoView(), [messages]);
+
+  console.log("Render:", { openedChat, messagesCount: messages.length });
 
   if (!openedChat) return;
 
@@ -66,6 +72,7 @@ export default function ChatScreenChat() {
               </p>
             );
           })}
+        <div ref={lastMessages}></div>
       </div>
       <div style={{ position: "fixed", bottom: "60px", left: "35%" }}>
         <input
