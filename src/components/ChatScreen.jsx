@@ -13,6 +13,9 @@ export default function ChatScreen() {
         margin: "auto",
         borderRadius: "25px",
         backgroundColor: "white",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
       }}
     >
       <ChatScreenHeader />

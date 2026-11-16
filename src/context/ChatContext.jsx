@@ -2,39 +2,37 @@ import {
   createContext,
   useState,
   useEffect,
-  children,
   useContext,
 } from "react";
 import Swal from "sweetalert2";
 
 export default function ChatContext({ children }) {
-  /*========================== Data ============================*/
   const [users, setUsers] = useState(() => loadData("users"));
   const [chats, setChats] = useState(() => loadData("chats"));
   const [messages, setMessages] = useState(() => loadData("messages"));
-  const [loggedInAccountUsrName, setLoggedInAccountUsrName] = useState("1");
-  const [openedChatID, setOpendChatID] = useState(null);
+  const [loggedInUsername, setLoggedInUsername] = useState(null);
+  const [openedChatId, setOpenedChatId] = useState(null);
 
   const loggedInAccount = users.find(
-    (acc) => acc.userName === loggedInAccountUsrName,
+    (user) => user.userName === loggedInUsername,
   );
-  const openedChat = chats.find((chat) => chat.chatID === openedChatID);
-  /*========================== Side Effects ============================*/
+  const openedChat = chats.find((chat) => chat.chatId === openedChatId);
+
   useEffect(() => {
     localStorage.setItem("users", JSON.stringify(users));
     localStorage.setItem("chats", JSON.stringify(chats));
     localStorage.setItem("messages", JSON.stringify(messages));
   }, [users, chats, messages]);
-  /*========================== Functions ============================*/
-  function loadData(dataType) {
-    const savedData = localStorage.getItem(dataType);
+
+  function loadData(storageKey) {
+    const savedData = localStorage.getItem(storageKey);
     return savedData && savedData !== "undefined" ? JSON.parse(savedData) : [];
   }
 
   const createAccount = ({ userName, userPassword }) => {
     if (
       users.some(
-        (usr) => usr.userName.toLowerCase() === userName.trim().toLowerCase(),
+        (user) => user.userName.toLowerCase() === userName.trim().toLowerCase(),
       )
     ) {
       Swal.fire({
@@ -45,21 +43,21 @@ export default function ChatContext({ children }) {
     }
 
     const newUser = {
-      userID: `usr_${crypto.randomUUID()}`,
+      userId: `usr_${crypto.randomUUID()}`,
       userName: userName.trim(),
       userPassword: userPassword.trim(),
       avatar: `https://api.dicebear.com/10.x/personas/svg?seed=${userName.trim()}`,
     };
 
     setUsers((prevUsers) => [...prevUsers, newUser]);
-    setLoggedInAccountUsrName(newUser.userName);
+    setLoggedInUsername(newUser.userName);
     return true;
   };
 
   const loginAccount = ({ userName, userPassword }) => {
-    const loggingAccount = users.find((usr) => usr.userName === userName);
+    const matchedUser = users.find((user) => user.userName === userName);
 
-    if (!loggingAccount || loggingAccount.userPassword !== userPassword) {
+    if (!matchedUser || matchedUser.userPassword !== userPassword) {
       Swal.fire({
         title: "Wrong Details",
         text: "One or more details is wrong",
@@ -69,61 +67,61 @@ export default function ChatContext({ children }) {
       return false;
     }
 
-    setLoggedInAccountUsrName(loggingAccount.userName);
+    setLoggedInUsername(matchedUser.userName);
     return true;
   };
 
-  const openChat = (userID) => {
+  const openChat = (userId) => {
     let selectedChat = chats.find((chat) => {
       return (
-        chat.participants.includes(loggedInAccount.userID) &&
-        chat.participants.includes(userID)
+        chat.participants.includes(loggedInAccount.userId) &&
+        chat.participants.includes(userId)
       );
     });
 
     if (!selectedChat) {
-      selectedChat = createChat(userID);
+      selectedChat = createChat(userId);
     }
 
-    setOpendChatID(selectedChat.chatID);
+    setOpenedChatId(selectedChat.chatId);
   };
 
-  const createChat = (userID) => {
+  const createChat = (userId) => {
     const newChat = {
-      chatID: `chat_${crypto.randomUUID()}`,
-      participants: [loggedInAccount.userID, userID],
+      chatId: `chat_${crypto.randomUUID()}`,
+      participants: [loggedInAccount.userId, userId],
     };
 
     setChats((prevChats) => [...prevChats, newChat]);
     return newChat;
   };
 
-  const sendMessage = (chatID, messageType, messageContent) => {
+  const sendMessage = (chatId, messageType, messageContent) => {
     const newMessage = {
-      messageID: `msg_${crypto.randomUUID()}`,
-      messageSenderID: loggedInAccount.userID,
-      messageType: messageType,
-      messageContent: messageContent,
-      chatID: chatID,
+      messageId: `msg_${crypto.randomUUID()}`,
+      senderId: loggedInAccount.userId,
+      type: messageType,
+      content: messageContent,
+      chatId: chatId,
     };
 
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
-  /*========================== Configurations ============================*/
-  const chatData = {
+
+  const dataContextValue = {
     loggedInAccount,
-    setLoggedInAccountUsrName,
+    setLoggedInUsername,
     users,
     openedChat,
     chats,
-    setOpendChatID,
+    setOpenedChatId,
     messages,
   };
-  const chatActions = { createAccount, loginAccount, openChat, sendMessage };
+  const actionsContextValue = { createAccount, loginAccount, openChat, sendMessage };
 
   return (
-    <ChatDataContext.Provider value={chatData}>
-      <ChatActionsContext.Provider value={chatActions}>
+    <ChatDataContext.Provider value={dataContextValue}>
+      <ChatActionsContext.Provider value={actionsContextValue}>
         {children}
       </ChatActionsContext.Provider>
     </ChatDataContext.Provider>

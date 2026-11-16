@@ -1,30 +1,27 @@
-import { useChatActionsContext } from "../context/ChatContext";
 import { useState } from "react";
+import { useChatActionsContext } from "../context/ChatContext";
 import Swal from "sweetalert2";
 
 export default function LoginAccount() {
   const { loginAccount } = useChatActionsContext();
 
-  const [formData, setFormData] = useState({
+  const [credentials, setCredentials] = useState({
     userName: "",
     userPassword: "",
   });
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData((prevFormData) => {
-      return {
-        ...prevFormData,
-        [name]: value,
-      };
-    });
+    setCredentials((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.userName.trim() || !formData.userPassword.trim()) {
+    if (!credentials.userName.trim() || !credentials.userPassword.trim()) {
       Swal.fire({
         title: "Missing Details",
         timer: 1000,
@@ -33,16 +30,15 @@ export default function LoginAccount() {
       return;
     }
 
-    console.log(formData);
-    const isSuccess = loginAccount(formData);
+    const isSuccess = loginAccount(credentials);
 
     if (isSuccess) {
       Swal.fire({
-        title: "Logged In Successfuly",
+        title: "Logged In Successfully",
         timer: 1000,
         showConfirmButton: false,
       });
-      setFormData({
+      setCredentials({
         userName: "",
         userPassword: "",
       });
@@ -52,14 +48,13 @@ export default function LoginAccount() {
   return (
     <>
       <h1>Log Into Your Account</h1>
-
       <form
         style={{
           display: "flex",
           flexDirection: "column",
           width: "fit-content",
           alignItems: "center",
-          margin: "0px auto",
+          margin: "0 auto",
           gap: "5px",
         }}
         onSubmit={handleSubmit}
@@ -70,17 +65,17 @@ export default function LoginAccount() {
           name="userName"
           id="userName"
           placeholder="Israel Nahari"
-          value={formData.userName}
-          onChange={handleChange}
+          value={credentials.userName}
+          onChange={handleInputChange}
         />
         <label htmlFor="userPassword">Enter your password</label>
         <input
-          type="text"
+          type="password"
           name="userPassword"
           id="userPassword"
           placeholder="Israel Nahari"
-          value={formData.userPassword}
-          onChange={handleChange}
+          value={credentials.userPassword}
+          onChange={handleInputChange}
         />
         <button type="submit">Login</button>
       </form>

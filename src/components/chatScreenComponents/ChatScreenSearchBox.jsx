@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import {
   useChatDataContext,
   useChatActionsContext,
@@ -11,50 +11,54 @@ export default function ChatScreenSearchBox() {
 
   if (openedChat) return;
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  if (openedChat) return;
   return (
-    <>
-      <div style={{}}>
-        <input
-          type="text"
-          placeholder="Search for chats"
-          value={searchTerm}
-          style={{ width: "90%", margin: "2px auto" }}
-          onChange={handleChange}
-        />
-        {searchTerm && (
-          <div style={{ position: "relative" }}>
-            {users
-              .filter((usr) => {
-                if (
-                  searchTerm.trim().toLowerCase() === loggedInAccount.userName
-                )
-                  return false;
-                return usr.userName
-                  .toLowerCase()
-                  .includes(searchTerm.trim().toLowerCase());
-              })
-              .map((usr) => {
-                return (
-                  <div
-                    key={usr.userID}
-                    style={{ border: "1px solid silver", height: "20px" }}
-                    onClick={() => {
-                      openChat(usr.userID);
-                      setSearchTerm("");
-                    }}
-                  >
-                    <h4 style={{ margin: "0px" }}>{usr.userName}</h4>
-                  </div>
-                );
-              })}
-          </div>
-        )}
-      </div>
-    </>
+    <div style={{ position: "relative" }}>
+      <input
+        type="text"
+        placeholder="Search for chats"
+        value={searchTerm}
+        style={{ width: "90%", margin: "2px auto", display: "block" }}
+        onChange={handleInputChange}
+      />
+      {searchTerm && (
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            backgroundColor: "white",
+          }}
+        >
+          {users
+            .filter((user) => {
+              if (user.userId === loggedInAccount.userId) return false;
+              return user.userName
+                .toLowerCase()
+                .includes(searchTerm.trim().toLowerCase());
+            })
+            .map((user) => (
+              <div
+                key={user.userId}
+                style={{
+                  border: "1px solid silver",
+                  padding: "4px 8px",
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  openChat(user.userId);
+                  setSearchTerm("");
+                }}
+              >
+                <h4 style={{ margin: "0" }}>{user.userName}</h4>
+              </div>
+            ))}
+        </div>
+      )}
+    </div>
   );
 }

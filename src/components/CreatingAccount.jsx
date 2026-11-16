@@ -5,26 +5,23 @@ import Swal from "sweetalert2";
 export default function CreatingAccount() {
   const { createAccount } = useChatActionsContext();
 
-  const [formData, setFormData] = useState({
+  const [credentials, setCredentials] = useState({
     userName: "",
     userPassword: "",
   });
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData((prevFormData) => {
-      return {
-        ...prevFormData,
-        [name]: value,
-      };
-    });
+    setCredentials((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.userName.trim() || !formData.userPassword.trim()) {
+    if (!credentials.userName.trim() || !credentials.userPassword.trim()) {
       Swal.fire({
         title: "Missing Details",
         timer: 1000,
@@ -33,16 +30,15 @@ export default function CreatingAccount() {
       return;
     }
 
-    console.log(formData);
-    const isSuccess = createAccount(formData);
+    const isSuccess = createAccount(credentials);
 
     if (isSuccess) {
       Swal.fire({
-        title: "Account Created Successfuly",
+        title: "Account Created Successfully",
         timer: 1000,
         showConfirmButton: false,
       });
-      setFormData({
+      setCredentials({
         userName: "",
         userPassword: "",
       });
@@ -52,14 +48,13 @@ export default function CreatingAccount() {
   return (
     <>
       <h1>Create Your Account</h1>
-
       <form
         style={{
           display: "flex",
           flexDirection: "column",
           width: "fit-content",
           alignItems: "center",
-          margin: "0px auto",
+          margin: "0 auto",
           gap: "5px",
         }}
         onSubmit={handleSubmit}
@@ -70,17 +65,17 @@ export default function CreatingAccount() {
           name="userName"
           id="userName"
           placeholder="Israel Nahari"
-          value={formData.userName}
-          onChange={handleChange}
+          value={credentials.userName}
+          onChange={handleInputChange}
         />
         <label htmlFor="userPassword">Choose a password</label>
         <input
-          type="text"
+          type="password"
           name="userPassword"
           id="userPassword"
           placeholder="Israel Nahari"
-          value={formData.userPassword}
-          onChange={handleChange}
+          value={credentials.userPassword}
+          onChange={handleInputChange}
         />
         <button type="submit">Create Account</button>
       </form>

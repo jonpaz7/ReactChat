@@ -6,79 +6,81 @@ import {
 
 export default function ChatScreenChat() {
   const { openedChat, messages, loggedInAccount, users } = useChatDataContext();
-
   const { sendMessage } = useChatActionsContext();
 
-  const [message, setMessage] = useState("");
+  const [draftMessage, setDraftMessage] = useState("");
   const [messageType, setMessageType] = useState("text");
+  const messagesEndRef = useRef(null);
 
-  const lastMessages = useRef(null);
-
-  useEffect(() => lastMessages.current?.scrollIntoView(), [messages]);
-
-  console.log("Render:", { openedChat, messagesCount: messages.length });
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, openedChat?.chatId]);
 
   if (!openedChat) return;
 
-  const handleChange = (e) => {
-    setMessage(e.target.value);
+  const handleInputChange = (e) => {
+    setDraftMessage(e.target.value);
   };
 
   const handleSend = () => {
-    if (message.trim()) {
-      sendMessage(openedChat.chatID, messageType, message);
-      setMessage("");
+    if (draftMessage.trim()) {
+      sendMessage(openedChat.chatId, messageType, draftMessage);
+      setDraftMessage("");
     }
   };
 
   return (
-    <div>
+    <div
+      style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        minHeight: 0,
+      }}
+    >
       <div
         style={{
-          width: "100%",
-          height: "350px",
-          zIndex: 1000,
+          flex: 1,
           border: "1px solid #e0e0e0",
           display: "flex",
           flexDirection: "column",
-          overflow: "hidden",
           overflowY: "auto",
         }}
       >
         {messages
-          .filter((msg) => {
-            return msg.chatID === openedChat.chatID;
-          })
+          .filter((msg) => msg.chatId === openedChat.chatId)
           .map((msg) => {
-            const isLoggedInAccMsg =
-              msg.messageSenderID === loggedInAccount.userID;
-            const messageSender = users.find(
-              (usr) => usr.userID === msg.messageSenderID,
+            const isSentByMe = msg.senderId === loggedInAccount.userId;
+            const sender = users.find(
+              (user) => user.userId === msg.senderId,
             );
             return (
               <p
-                key={msg.messageID}
+                key={msg.messageId}
                 style={{
-                  textAlign: isLoggedInAccMsg ? "left" : "right",
-                  backgroundColor: isLoggedInAccMsg ? "#DCF8C6" : "#E7F3FF",
+                  textAlign: "left",
+                  backgroundColor: isSentByMe ? "#DCF8C6" : "#E7F3FF",
                   width: "fit-content",
                   padding: "2px 6px",
-                  margin: isLoggedInAccMsg ? "2px 2px 2px auto" : "2px",
+                  margin: isSentByMe
+                    ? "2px 2px 2px auto"
+                    : "2px auto 2px 2px",
                   borderRadius: "5px",
                 }}
               >
-                <strong>{messageSender.userName}: </strong>
-                {msg.messageContent}
+                <strong>{sender.userName}: </strong>
+                {msg.content}
               </p>
             );
           })}
-        <div ref={lastMessages}></div>
+        <div ref={messagesEndRef}></div>
       </div>
-      <div style={{ position: "fixed", bottom: "60px", left: "35%" }}>
+      <div style={{ display: "flex", padding: "8px", gap: "8px" }}>
         <input
+          style={{ flex: 1 }}
           placeholder="Message"
-          value={message}
-          onChange={handleChange}
+          value={draftMessage}
+          onChange={handleInputChange}
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSend();
           }}

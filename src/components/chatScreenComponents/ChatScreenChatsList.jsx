@@ -1,36 +1,37 @@
 import { useChatDataContext } from "../../context/ChatContext";
+
 export default function ChatScreenChatsList() {
-  const { users, chats, loggedInAccount, setOpendChatID, openedChat } =
+  const { users, chats, loggedInAccount, setOpenedChatId, openedChat } =
     useChatDataContext();
+
   if (openedChat) return;
+
   return (
-    <div>
+    <div style={{ flex: 1, overflowY: "auto" }}>
       {chats
-        .filter((chat) => {
-          return chat.participants.includes(loggedInAccount.userID);
-        })
+        .filter((chat) => chat.participants.includes(loggedInAccount.userId))
         .map((chat) => {
-          const otherParticipantID = chat.participants.find((part) => {
-            return part !== loggedInAccount.userID;
-          });
-
-          const otherParticipant = users.find(
-            (usr) => usr.userID === otherParticipantID,
+          const otherUserId = chat.participants.find(
+            (participantId) => participantId !== loggedInAccount.userId,
           );
-
+          const otherParticipant = users.find(
+            (user) => user.userId === otherUserId,
+          );
           return (
             <div
-              key={chat.chatID}
+              key={chat.chatId}
               style={{
                 border: "1px solid silver",
                 height: "50px",
                 display: "flex",
+                alignItems: "center",
+                cursor: "pointer",
               }}
-              onClick={() => setOpendChatID(chat.chatID)}
+              onClick={() => setOpenedChatId(chat.chatId)}
             >
               <img
                 src={otherParticipant.avatar}
-                alt="none"
+                alt={otherParticipant.userName}
                 style={{ width: "30px" }}
               />
               <h3 style={{ margin: "5px" }}>{otherParticipant.userName}</h3>
