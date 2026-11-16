@@ -46,7 +46,7 @@ export default function LoginAccount() {
   };
 
   return (
-    <>
+    <div style={{ margin: " 0 auto" }}>
       <h1>Log Into Your Account</h1>
       <form
         style={{
@@ -79,6 +79,6 @@ export default function LoginAccount() {
         />
         <button type="submit">Login</button>
       </form>
-    </>
+    </div>
   );
 }

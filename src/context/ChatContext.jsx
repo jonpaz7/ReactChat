@@ -1,9 +1,4 @@
-import {
-  createContext,
-  useState,
-  useEffect,
-  useContext,
-} from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import Swal from "sweetalert2";
 
 export default function ChatContext({ children }) {
@@ -23,6 +18,21 @@ export default function ChatContext({ children }) {
     localStorage.setItem("chats", JSON.stringify(chats));
     localStorage.setItem("messages", JSON.stringify(messages));
   }, [users, chats, messages]);
+
+  /*useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key === "users") {
+        setUsers(() => loadData("users"));
+      } else if (event.key === "chats") {
+        setChats(() => loadData("chats"));
+      } else if (event.key === "messages") {
+        setMessages(() => loadData("messages"));
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);*/
 
   function loadData(storageKey) {
     const savedData = localStorage.getItem(storageKey);
@@ -103,9 +113,35 @@ export default function ChatContext({ children }) {
       type: messageType,
       content: messageContent,
       chatId: chatId,
+      isHidden: false,
     };
 
     setMessages((prevMessages) => [...prevMessages, newMessage]);
+  };
+
+  const deleteMessage = (msgId, deleteMode) => {
+    if (deleteMode === "hide") {
+      setMessages((prevMessages) => {
+        return prevMessages.map((msg) => {
+          if (msg.messageId === msgId) {
+            return {
+              ...msg,
+              isHidden: true,
+            };
+          }
+          return msg;
+        });
+      });
+    }
+
+    if (deleteMode === "permanent") {
+      setMessages((prevMessages) => {
+        return prevMessages.filter((msg) => {
+          if (msg.messageId === msgId) return false;
+          return true;
+        });
+      });
+    }
   };
 
   const dataContextValue = {
@@ -117,7 +153,13 @@ export default function ChatContext({ children }) {
     setOpenedChatId,
     messages,
   };
-  const actionsContextValue = { createAccount, loginAccount, openChat, sendMessage };
+  const actionsContextValue = {
+    createAccount,
+    loginAccount,
+    openChat,
+    sendMessage,
+    deleteMessage,
+  };
 
   return (
     <ChatDataContext.Provider value={dataContextValue}>

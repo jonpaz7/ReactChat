@@ -46,7 +46,7 @@ export default function CreatingAccount() {
   };
 
   return (
-    <>
+    <div style={{ margin: " 0 auto" }}>
       <h1>Create Your Account</h1>
       <form
         style={{
@@ -79,6 +79,6 @@ export default function CreatingAccount() {
         />
         <button type="submit">Create Account</button>
       </form>
-    </>
+    </div>
   );
 }

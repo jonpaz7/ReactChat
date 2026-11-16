@@ -3,6 +3,7 @@ import {
   useChatDataContext,
   useChatActionsContext,
 } from "../../context/ChatContext";
+import ChatContextMenu from "./ChatContextMenu";
 
 export default function ChatScreenChat() {
   const { openedChat, messages, loggedInAccount, users } = useChatDataContext();
@@ -10,10 +11,15 @@ export default function ChatScreenChat() {
 
   const [draftMessage, setDraftMessage] = useState("");
   const [messageType, setMessageType] = useState("text");
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const [contextMenuData, setContextMenuData] = useState({});
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
   }, [messages, openedChat?.chatId]);
 
   if (!openedChat) return;
@@ -29,64 +35,88 @@ export default function ChatScreenChat() {
     }
   };
 
+  const handleContextMenu = (e, msgId) => {
+    setContextMenuData({
+      msgId: msgId,
+      x: e.clientX,
+      y: e.clientY,
+      close: () => setShowContextMenu(false),
+    });
+    setShowContextMenu(true);
+  };
+
   return (
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        minHeight: 0,
-      }}
-    >
+    <>
+      {showContextMenu && <ChatContextMenu data={contextMenuData} />}
       <div
         style={{
           flex: 1,
-          border: "1px solid #e0e0e0",
           display: "flex",
           flexDirection: "column",
-          overflowY: "auto",
+          minHeight: 0,
         }}
       >
-        {messages
-          .filter((msg) => msg.chatId === openedChat.chatId)
-          .map((msg) => {
-            const isSentByMe = msg.senderId === loggedInAccount.userId;
-            const sender = users.find(
-              (user) => user.userId === msg.senderId,
-            );
-            return (
-              <p
-                key={msg.messageId}
-                style={{
-                  textAlign: "left",
-                  backgroundColor: isSentByMe ? "#DCF8C6" : "#E7F3FF",
-                  width: "fit-content",
-                  padding: "2px 6px",
-                  margin: isSentByMe
-                    ? "2px 2px 2px auto"
-                    : "2px auto 2px 2px",
-                  borderRadius: "5px",
-                }}
-              >
-                <strong>{sender.userName}: </strong>
-                {msg.content}
-              </p>
-            );
-          })}
-        <div ref={messagesEndRef}></div>
-      </div>
-      <div style={{ display: "flex", padding: "8px", gap: "8px" }}>
-        <input
-          style={{ flex: 1 }}
-          placeholder="Message"
-          value={draftMessage}
-          onChange={handleInputChange}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSend();
+        <div
+          style={{
+            flex: 1,
+            border: "1px solid #e0e0e0",
+            display: "flex",
+            flexDirection: "column",
+            overflowY: "auto",
           }}
-        />
-        <button onClick={handleSend}>Send</button>
+        >
+          {messages
+            .filter((msg) => {
+              const isSentByMe = msg.senderId === loggedInAccount.userId;
+
+              if (msg.chatId === openedChat.chatId) {
+                if (isSentByMe && msg.isHidden == true) return false;
+                else return true;
+              }
+              return false;
+            })
+            .map((msg) => {
+              const isSentByMe = msg.senderId === loggedInAccount.userId;
+              const sender = users.find((user) => user.userId === msg.senderId);
+              return (
+                <p
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    handleContextMenu(e, msg.messageId);
+                  }}
+                  key={msg.messageId}
+                  style={{
+                    textAlign: "left",
+                    backgroundColor: isSentByMe ? "#DCF8C6" : "#E7F3FF",
+                    width: "fit-content",
+                    padding: "2px 6px",
+                    margin: isSentByMe
+                      ? "2px auto 2px 2px"
+                      : "2px 2px 2px auto",
+
+                    borderRadius: "5px",
+                  }}
+                >
+                  <strong>{sender.userName}: </strong>
+                  {msg.content}
+                </p>
+              );
+            })}
+          <div ref={messagesEndRef}></div>
+        </div>
+        <div style={{ display: "flex", padding: "8px", gap: "8px" }}>
+          <input
+            style={{ flex: 1 }}
+            placeholder="Message"
+            value={draftMessage}
+            onChange={handleInputChange}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSend();
+            }}
+          />
+          <button onClick={handleSend}>Send</button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
