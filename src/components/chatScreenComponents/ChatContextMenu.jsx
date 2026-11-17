@@ -1,24 +1,45 @@
 import { createPortal } from "react-dom";
 import Swal from "sweetalert2";
-import { useChatActionsContext } from "../../context/ChatContext";
+import {
+  useChatActionsContext,
+  useChatDataContext,
+} from "../../context/ChatContext";
 
 export default function ChatContextMenu({ data }) {
   const { deleteMessage } = useChatActionsContext();
-  const { msgId, x, y, close } = data;
+  const { loggedInAccount } = useChatDataContext();
+  const { msg, x, y, close } = data;
 
+  const isMsgOwner = msg.senderId == loggedInAccount.userId;
   const handleDelete = () => {
-    Swal.fire({
-      title: "Delete Message",
-      text: "Are you sure?",
-      showConfirmButton: true,
-      confirmButtonText: "Delete for Both Sides",
-      showDenyButton: true,
-      denyButtonText: "Delete Only for Me",
-      showCancelButton: true,
-    }).then((result) => {
-      if (result.isConfirmed) deleteMessage(msgId, "permanent");
-      else if (result.isDenied) deleteMessage(msgId, "hide");
-    });
+    isMsgOwner &&
+      Swal.fire({
+        title: "Delete Message",
+        text: "Are you sure?",
+        showConfirmButton: true,
+        confirmButtonText: "Delete for Both Sides",
+        showDenyButton: true,
+        denyButtonText: "Delete Only for Me",
+        showCancelButton: true,
+      }).then((result) => {
+        if (result.isConfirmed)
+          deleteMessage(msg.messageId, "permanent", loggedInAccount.userId);
+        else if (result.isDenied)
+          deleteMessage(msg.messageId, "hide", loggedInAccount.userId);
+      });
+
+    !isMsgOwner &&
+      Swal.fire({
+        title: "Delete Message",
+        text: "Are you sure?",
+        showConfirmButton: false,
+        showDenyButton: true,
+        denyButtonText: "Delete Only for Me",
+        showCancelButton: true,
+      }).then((result) => {
+        if (result.isDenied)
+          deleteMessage(msg.messageId, "hide", loggedInAccount.userId);
+      });
   };
   return createPortal(
     <div onClick={() => close()} style={{ inset: "0", position: "absolute" }}>

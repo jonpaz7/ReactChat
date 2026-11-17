@@ -35,9 +35,9 @@ export default function ChatScreenChat() {
     }
   };
 
-  const handleContextMenu = (e, msgId) => {
+  const handleContextMenu = (e, msg) => {
     setContextMenuData({
-      msgId: msgId,
+      msg: msg,
       x: e.clientX,
       y: e.clientY,
       close: () => setShowContextMenu(false),
@@ -67,10 +67,10 @@ export default function ChatScreenChat() {
         >
           {messages
             .filter((msg) => {
-              const isSentByMe = msg.senderId === loggedInAccount.userId;
+              const isDeletedByMe = msg.deleterId?.has(loggedInAccount.userId);
 
               if (msg.chatId === openedChat.chatId) {
-                if (isSentByMe && msg.isHidden == true) return false;
+                if (isDeletedByMe) return false;
                 else return true;
               }
               return false;
@@ -82,7 +82,7 @@ export default function ChatScreenChat() {
                 <p
                   onContextMenu={(e) => {
                     e.preventDefault();
-                    handleContextMenu(e, msg.messageId);
+                    handleContextMenu(e, msg);
                   }}
                   key={msg.messageId}
                   style={{

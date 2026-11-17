@@ -119,7 +119,7 @@ export default function ChatContext({ children }) {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
-  const deleteMessage = (msgId, deleteMode) => {
+  const deleteMessage = (msgId, deleteMode, deleterId) => {
     if (deleteMode === "hide") {
       setMessages((prevMessages) => {
         return prevMessages.map((msg) => {
@@ -127,6 +127,7 @@ export default function ChatContext({ children }) {
             return {
               ...msg,
               isHidden: true,
+              deleterId: new Set([...(msg.deleterId ?? []), deleterId]),
             };
           }
           return msg;
