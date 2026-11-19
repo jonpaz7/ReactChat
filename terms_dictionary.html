@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>מילון מושגים מקיף - צד שרת, תקשורת וצ'אט</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Assistant', sans-serif;
+      line-height: 1.6;
+      color: #1e293b;
+      margin: 40px;
+      background-color: #f8fafc;
+    }
+
+    .header {
+      text-align: center;
+      padding-bottom: 25px;
+      border-bottom: 3px solid #3b82f6;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      color: #0f172a;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 16px;
+    }
+
+    .category-title {
+      background-color: #e2e8f0;
+      color: #1e293b;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 20px;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      border-right: 5px solid #3b82f6;
+    }
+
+    .term-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      page-break-inside: avoid;
+    }
+
+    .term-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .term-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2563eb;
+    }
+
+    .term-english {
+      font-family: monospace;
+      font-size: 14px;
+      color: #64748b;
+      background: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 4px;
+      direction: ltr;
+    }
+
+    .term-meaning {
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .term-desc {
+      color: #475569;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .term-analogy {
+      background-color: #eff6ff;
+      border-right: 3px solid #60a5fa;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #1e40af;
+    }
+
+    code {
+      font-family: monospace;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #d97706;
+      font-size: 13px;
+      direction: ltr;
+      display: inline-block;
+    }
+
+    @media print {
+      body {
+        margin: 20px;
+        background: #fff;
+      }
+      .term-card {
+        box-shadow: none;
+        border: 1px solid #cbd5e1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>📖 מילון מושגים מקיף: צד שרת, תקשורת וצ'אט</h1>
+    <div class="subtitle">סיכום מעמיק של כל המושגים, הפרוטוקולים והכלים שלמדנו</div>
+  </div>
+
+  <!-- קטגוריה 1: תשתית וסביבה -->
+  <div class="category-title">1. תשתית, סביבת ריצה וארכיטקטורה</div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">צד שרת / שרת</span>
+      <span class="term-english">Backend / Server</span>
+    </div>
+    <div class="term-meaning">ההגדרה: התוכנה והלוגיקה שרצות על מחשב מרכזי מחוץ לדפדפן.</div>
+    <div class="term-desc">תפקידו להיות מקור האמת היחיד (Single Source of Truth), לתווך בין משתמשים, לשמור היסטוריה בבסיס נתונים, לאחסן קבצים ולבצע פעולות מאובטחות שהדפדפן אינו רשאי לבצע.</div>
+    <div class="term-analogy">💡 אנלוגיה: המטבח במסעדה — הלקוחות לא נכנסים אליו ישירות, הטבחים מכינים בו את האוכל לפי הזמנות.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">צד לקוח</span>
+      <span class="term-english">Frontend / Client</span>
+    </div>
+    <div class="term-meaning">ההגדרה: כל מה שרץ בתוך הדפדפן של המשתמש (React, HTML, CSS).</div>
+    <div class="term-desc">אחראי על חוויית המשתמש (UI), עיצוב, תפיסת לחיצות וכפתורים, ושיקוף הנתונים שמגיעים מהשרת. אינו שומר מידע קבוע של משתמשים אחרים.</div>
+    <div class="term-analogy">💡 אנלוגיה: חלל הישיבה והתפריט במסעדה.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">נוד ג'יי אס</span>
+      <span class="term-english">Node.js</span>
+    </div>
+    <div class="term-meaning">ההגדרה: סביבת הרצה המאפשרת להריץ קוד JavaScript ישירות על מערכת ההפעלה.</div>
+    <div class="term-desc">נוד אינו שרת בעצמו, אלא ה"מנוע" שמריץ את קובץ השרת שאתה כותב, ומעניק לו גישה לכרטיס הרשת, למערכת הקבצים בדיסק ולזיכרון המחשב.</div>
+    <div class="term-analogy">💡 אנלוגיה: המנוע והדלק של הרכב שמאפשרים לו לנסוע על הכביש.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">ניהול חבילות של נוד</span>
+      <span class="term-english">NPM / package.json</span>
+    </div>
+    <div class="term-meaning">ההגדרה: מנהל החבילות ותעודת הזהות של הפרויקט.</div>
+    <div class="term-desc">הפקודה <code>npm init -y</code> מייצרת את קובץ ה-<code>package.json</code> שמפרט את שם הפרויקט, הגרסה, וכל הספריות החיצוניות שהותקנו לצורך ריצתו (Dependencies).</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">שער / פורט</span>
+      <span class="term-english">Port (e.g. 5000)</span>
+    </div>
+    <div class="term-meaning">ההגדרה: נקודת קצה וירטואלית במערכת ההפעלה המאפשרת לנתב תעבורת רשת ליישום ספציפי.</div>
+    <div class="term-desc">למחשב יש עשרות אלפי פורטים. כשאנו מגדירים לשרת להאזין בפורט 5000, כל בקשה שמגיעה לכתובת המחשב עם סיומת זו מועברת ישירות לתוכנית השרת שלנו.</div>
+    <div class="term-analogy">💡 אנלוגיה: מספר הדירה בבניין מגורים משותף.</div>
+  </div>
+
+  <!-- קטגוריה 2: פרוטוקולים ותקשורת -->
+  <div class="category-title">2. פרוטוקולים, שיטות תקשורת ורשת</div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">פרוטוקול HTTP</span>
+      <span class="term-english">HTTP (Hypertext Transfer Protocol)</span>
+    </div>
+    <div class="term-meaning">ההגדרה: פרוטוקול תקשורת מבוסס בקשה-תשובה (Request-Response).</div>
+    <div class="term-desc">עקרון העבודה: הלקוח פונה בבקשה ← השרת מגיב ← החיבור נסגר מיד. השרת אינו יכול ליזום פנייה לדפדפן מיוזמתו. משמש לטעינת דפים, שליחת טפסים והעלאת קבצים.</div>
+    <div class="term-analogy">💡 אנלוגיה: שליחת מכתב בדואר וקבלת מכתב תשובה בחזרה.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">וובסוקט</span>
+      <span class="term-english">WebSocket</span>
+    </div>
+    <div class="term-meaning">ההגדרה: פרוטוקול תקשורת דו-כיווני, רציף ופתוח בזמן אמת.</div>
+    <div class="term-desc">החיבור נפתח בבקשת שדרוג (Handshake) ולאחר מכן נשאר פתוח ברציפות. שני הצדדים יכולים לשדר נתונים בכל שבריר שנייה ללא צורך בפתיחת חיבור חדש.</div>
+    <div class="term-analogy">💡 אנלוגיה: שיחת טלפון פתוחה שבה אף אחד לא מנתק את השפופרת.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">סוקט.איי או</span>
+      <span class="term-english">Socket.IO</span>
+    </div>
+    <div class="term-meaning">ההגדרה: ספריית JavaScript משוכללת מעל פרוטוקול WebSocket.</div>
+    <div class="term-desc">מעניקה ממשק אירועים פשוט (<code>emit</code> ו-<code>on</code>), חיבור מחדש אוטומטי במקרה של ניתוק רשת, וחלוקת משתמשים ל"חדרים" (Rooms) בקלות.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">ארכיטקטורת REST API</span>
+      <span class="term-english">REST API</span>
+    </div>
+    <div class="term-meaning">ההגדרה: סט מוסכמות עולמי לתכנון נתיבי שרת בצורה אחידה וקריאה.</div>
+    <div class="term-desc">הנתיבים מבוססים על שמות עצם ברבים (<code>/api/messages</code>) והפעולה נקבעת לפי סוג מתודת ה-HTTP הנשלחת (GET לקריאה, POST ליצירה, DELETE למחיקה, PUT/PATCH לעריכה).</div>
+  </div>
+
+  <!-- קטגוריה 3: מבנה הבקשה והתשובה -->
+  <div class="category-title">3. אנטומיית הבקשה (Request) והתשובה (Response)</div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">גוף הבקשה</span>
+      <span class="term-english">req.body</span>
+    </div>
+    <div class="term-meaning">ההגדרה: התוכן המרכזי והכבד שנשלח מהלקוח (ב-POST/PUT).</div>
+    <div class="term-desc">מכיל בדרך כלל אובייקט JSON עם נתוני טופס או הודעה. נקרא על ידי השרת הודות ל-Middleware של <code>express.json()</code>.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">פרמטרי נתיב דינמיים</span>
+      <span class="term-english">req.params (e.g. :chatId)</span>
+    </div>
+    <div class="term-meaning">ההגדרה: משתנים המוטמעים ישירות בתוך כתובת ה-URL ומוגדרים בעזרת נקודתיים.</div>
+    <div class="term-desc">משמשים להצבעה על פריט ספציפי ויחיד לפי מזהה ייחודי (ID). השרת לוכד את הערך שבין הסלאשים ושם אותו באובייקט <code>req.params</code>.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">פרמטרי חיפוש וסינון</span>
+      <span class="term-english">req.query (?key=val)</span>
+    </div>
+    <div class="term-meaning">ההגדרה: מחרוזת שאילתה המופיעה בסוף ה-URL לאחר סימן שאלה.</div>
+    <div class="term-desc">משמשת בעיקר בבקשות GET לצורך סינון, מיון, חיפוש טקסט או חלוקה לעמודים (Pagination) מבלי לשנות את מבנה הנתיב הבסיסי.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">כותרות הבקשה</span>
+      <span class="term-english">req.headers</span>
+    </div>
+    <div class="term-meaning">ההגדרה: מטא-דאטה (מידע על המידע) שנשלח לצד הבקשה.</div>
+    <div class="term-desc">משמש לציון סוג התוכן הנשלח (<code>Content-Type: application/json</code>), מפתחות אימות ואבטחה (Authorization Tokens), שפת הדפדפן ועוד.</div>
+    <div class="term-analogy">💡 אנלוגיה: המדבקה והבולים המודבקים על גבי המעטפה.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">קודי סטטוס HTTP</span>
+      <span class="term-english">HTTP Status Codes</span>
+    </div>
+    <div class="term-meaning">ההגדרה: מספרים בינלאומיים המעידים על תוצאת הטיפול בבקשה.</div>
+    <div class="term-desc">
+      • <b>200 OK:</b> הבקשה הצליחה.<br>
+      • <b>201 Created:</b> הבקשה הצליחה ונוצר משאב חדש במערכת.<br>
+      • <b>400 Bad Request:</b> הלקוח שלח מידע לא תקין או חסר.<br>
+      • <b>404 Not Found:</b> הנתיב או הפריט המבוקש לא קיים.<br>
+      • <b>500 Server Error:</b> השרת נתקל בשגיאה פנימית וקרס.
+    </div>
+  </div>
+
+  <!-- קטגוריה 4: טיפול במידע ובמדיה -->
+  <div class="category-title">4. עיבוד נתונים, קבצים ומדיה</div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">ג'ייסון ומחרוזות</span>
+      <span class="term-english">JSON (stringify & parse)</span>
+    </div>
+    <div class="term-meaning">ההגדרה: פורמט טקסטואלי סטנדרטי להעברת מבני נתונים ברשת.</div>
+    <div class="term-desc">כבל רשת אינו יכול להעביר אובייקטים של JS. <code>JSON.stringify</code> ממיר אובייקט למחרוזת טקסט לצורך שליחה, ו-<code>JSON.parse</code> (או <code>response.json()</code>) ממיר את הטקסט בחזרה לאובייקט בזיכרון.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">טופס נתונים רב-חלקי</span>
+      <span class="term-english">FormData / multipart/form-data</span>
+    </div>
+    <div class="term-meaning">ההגדרה: פורמט מיוחד לשליחת קבצים בינאריים יחד עם טקסט.</div>
+    <div class="term-desc">כשמעלים תמונה, מסמך או הקלטה, לא משתמשים ב-JSON אלא אורזים את הקובץ באובייקט <code>FormData</code>. הדפדפן מחלק את הבקשה למקטעים ומעביר את הבייטים בצורה יעילה.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">מאלטר</span>
+      <span class="term-english">Multer</span>
+    </div>
+    <div class="term-meaning">ההגדרה: ספריית Middleware של Express לקליטה ושמירת קבצים בדיסק.</div>
+    <div class="term-desc">מיירטת את הבייטים של הקובץ מהבקשה, נותנת לו שם ייחודי בדיסק (למניעת דריסת קבצים), שומרת אותו בתיקייה (כמו <code>uploads/</code>) ומעבירה לקוד שלנו את הפרטים בתוך <code>req.file</code>.</div>
+  </div>
+
+  <div class="term-card">
+    <div class="term-header">
+      <span class="term-name">הגשת קבצים סטטיים</span>
+      <span class="term-english">express.static</span>
+    </div>
+    <div class="term-meaning">ההגדרה: שיתוף תיקייה מקומית בדיסק ככתובות URL ציבוריות.</div>
+    <div class="term-desc">השורה <code>app.use('/uploads', express.static('uploads'))</code> הופכת את תיקיית הקבצים לזמינה ברשת, כך שכל דפדפן יכול להציג תמונה באמצעות כתובת פשוטה.</div>
+  </div>
+
+</body>
+</html>
