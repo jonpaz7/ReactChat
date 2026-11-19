@@ -5,7 +5,7 @@ export default function ChatContext({ children }) {
   const [users, setUsers] = useState(() => loadData("users"));
   const [chats, setChats] = useState(() => loadData("chats"));
   const [messages, setMessages] = useState(() => loadData("messages"));
-  const [loggedInUsername, setLoggedInUsername] = useState(null);
+  const [loggedInUsername, setLoggedInUsername] = useState("1");
   const [openedChatId, setOpenedChatId] = useState(null);
 
   const loggedInAccount = users.find(
@@ -119,6 +119,20 @@ export default function ChatContext({ children }) {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
+  const editMessage = (msgId, newContent) => {
+    setMessages((prevMessages) => {
+      return messages.map((msg) => {
+        if (msg.messageId === msgId) {
+          return {
+            ...msg,
+            content: newContent,
+          };
+        }
+        return msg;
+      });
+    });
+  };
+
   const deleteMessage = (msgId, deleteMode, deleterId) => {
     if (deleteMode === "hide") {
       setMessages((prevMessages) => {
@@ -160,6 +174,7 @@ export default function ChatContext({ children }) {
     openChat,
     sendMessage,
     deleteMessage,
+    editMessage,
   };
 
   return (
