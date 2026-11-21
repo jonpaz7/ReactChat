@@ -1,38 +1,68 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import Swal from "sweetalert2";
+import { io } from "socket.io-client";
+import { socket } from "../services/socket.js";
 
 export default function ChatContext({ children }) {
+  //=========================================== Data ==========================
+
   const [users, setUsers] = useState(() => loadData("users"));
   const [chats, setChats] = useState(() => loadData("chats"));
-  const [messages, setMessages] = useState(() => loadData("messages"));
+  const [messages, setMessages] = useState(/*() => loadData("messages")*/);
+
   const [loggedInUsername, setLoggedInUsername] = useState("1");
   const [openedChatId, setOpenedChatId] = useState(null);
 
-  const loggedInAccount = users.find(
-    (user) => user.userName === loggedInUsername,
-  );
-  const openedChat = chats.find((chat) => chat.chatId === openedChatId);
+  const loggedInAccount =
+    users.find((user) => user.userName === loggedInUsername) || null;
+  const openedChat = chats.find((chat) => chat.chatId === openedChatId) || null;
+
+  //=========================================== Server Cumunication ==========================
 
   useEffect(() => {
-    localStorage.setItem("users", JSON.stringify(users));
-    localStorage.setItem("chats", JSON.stringify(chats));
-    localStorage.setItem("messages", JSON.stringify(messages));
-  }, [users, chats, messages]);
+    //=================== Loads the data from the server
+    // Loads users
+    const fetchInitUsersData = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/messages");
+        const data = await res.json();
 
-  /*useEffect(() => {
-    const handleStorageChange = (event) => {
-      if (event.key === "users") {
-        setUsers(() => loadData("users"));
-      } else if (event.key === "chats") {
-        setChats(() => loadData("chats"));
-      } else if (event.key === "messages") {
-        setMessages(() => loadData("messages"));
+        setMessages(data);
+        console.log(data);
+      } catch {
+        (err) => console.log("Couldnt load messages", err);
       }
     };
+    fetchInitUsersData();
+    // Loads chats
+    const fetchInitChatsData = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/messages");
+        const data = await res.json();
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);*/
+        setMessages(data);
+        console.log(data);
+      } catch {
+        (err) => console.log("Couldnt load messages", err);
+      }
+    };
+    fetchInitChatsData();
+    // Loads messages
+    const fetchInitMessagesData = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/messages");
+        const data = await res.json();
+
+        setMessages(data);
+        console.log(data);
+      } catch {
+        (err) => console.log("Couldnt load messages", err);
+      }
+    };
+    fetchInitMessagesData();
+  }, []);
+
+  //=========================================== Functions ==========================
 
   function loadData(storageKey) {
     const savedData = localStorage.getItem(storageKey);
@@ -159,6 +189,8 @@ export default function ChatContext({ children }) {
     }
   };
 
+  //=========================================== Return Section ==========================
+
   const dataContextValue = {
     loggedInAccount,
     setLoggedInUsername,
@@ -185,6 +217,8 @@ export default function ChatContext({ children }) {
     </ChatDataContext.Provider>
   );
 }
+
+//=========================================== Exports & Custom Hooks ==========================
 
 export const ChatDataContext = createContext(null);
 export const ChatActionsContext = createContext(null);
