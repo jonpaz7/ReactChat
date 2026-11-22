@@ -1,5 +1,6 @@
 import { useChatDataContext } from "../../context/ChatContext";
 
+// Header component for user info, logout action, or active chat navigation
 export default function ChatScreenHeader() {
   const {
     loggedInAccount,
@@ -9,6 +10,7 @@ export default function ChatScreenHeader() {
     users,
   } = useChatDataContext();
 
+  // If inside an active conversation: display back button and interlocutor name
   if (openedChat) {
     const otherParticipant = users.find(
       (user) =>
@@ -20,6 +22,7 @@ export default function ChatScreenHeader() {
     return (
       <div style={{ padding: "8px 12px" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
+          {/* Back button to return to chat list */}
           <button
             style={{
               all: "unset",
@@ -47,6 +50,7 @@ export default function ChatScreenHeader() {
     );
   }
 
+  // Default header when on main chats list: displays user name, app title, and logout
   return (
     <div style={{ padding: "8px 12px" }}>
       <div style={{ display: "flex", alignItems: "center" }}>
@@ -54,6 +58,7 @@ export default function ChatScreenHeader() {
         <h4 style={{ margin: "0", flex: 1, textAlign: "center" }}>
           CheatyChat
         </h4>
+        {/* Logout button */}
         <button
           style={{
             all: "unset",

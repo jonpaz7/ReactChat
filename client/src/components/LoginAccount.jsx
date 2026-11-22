@@ -2,14 +2,17 @@ import { useState } from "react";
 import { useChatActionsContext } from "../context/ChatContext";
 import Swal from "sweetalert2";
 
+// Login form component to authenticate an existing user
 export default function LoginAccount() {
   const { loginAccount } = useChatActionsContext();
 
+  // Form input state
   const [credentials, setCredentials] = useState({
     userName: "",
     userPassword: "",
   });
 
+  // Track changes to form inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCredentials((prev) => ({
@@ -18,9 +21,11 @@ export default function LoginAccount() {
     }));
   };
 
+  // Validate credentials and trigger login action
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Prevent submission if fields are empty
     if (!credentials.userName.trim() || !credentials.userPassword.trim()) {
       Swal.fire({
         title: "Missing Details",
@@ -30,6 +35,7 @@ export default function LoginAccount() {
       return;
     }
 
+    // Call login handler and clear form inputs on success
     const isSuccess = loginAccount(credentials);
 
     if (isSuccess) {
@@ -45,6 +51,7 @@ export default function LoginAccount() {
     }
   };
 
+  // Render login form UI
   return (
     <div style={{ margin: " 0 auto" }}>
       <h1>Log Into Your Account</h1>

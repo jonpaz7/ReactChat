@@ -3,6 +3,7 @@ import ChatScreenChatsList from "./chatScreenComponents/ChatScreenChatsList";
 import ChatScreenSearchBox from "./chatScreenComponents/ChatScreenSearchBox";
 import ChatScreenChat from "./chatScreenComponents/ChatScreenChat";
 
+// Container component for the main chat interface
 export default function ChatScreen() {
   return (
     <div
@@ -18,9 +19,16 @@ export default function ChatScreen() {
         overflow: "hidden",
       }}
     >
+      {/* Top bar displaying user info or active chat title */}
       <ChatScreenHeader />
+
+      {/* User search bar for starting conversations */}
       <ChatScreenSearchBox />
+
+      {/* List of existing conversations */}
       <ChatScreenChatsList />
+
+      {/* Active chat window with message thread and message input */}
       <ChatScreenChat />
     </div>
   );

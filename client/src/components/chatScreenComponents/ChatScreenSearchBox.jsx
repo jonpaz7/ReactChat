@@ -4,17 +4,21 @@ import {
   useChatActionsContext,
 } from "../../context/ChatContext";
 
+// Search bar to find registered users and initiate new conversations
 export default function ChatScreenSearchBox() {
   const { users, loggedInAccount, openedChat } = useChatDataContext();
   const { openChat } = useChatActionsContext();
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Hide search box when viewing an open conversation
   if (openedChat) return;
 
+  // Handle typing inside the search input
   const handleInputChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
+  // Render input field and matching users dropdown
   return (
     <div style={{ position: "relative" }}>
       <input
@@ -34,6 +38,7 @@ export default function ChatScreenSearchBox() {
             backgroundColor: "white",
           }}
         >
+          {/* Filter users excluding current user and matching search query */}
           {users
             .filter((user) => {
               if (user.userId === loggedInAccount.userId) return false;

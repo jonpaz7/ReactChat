@@ -5,13 +5,18 @@ import {
   useChatDataContext,
 } from "../../context/ChatContext";
 
+// Context menu overlay rendered via React Portal for message actions (edit/delete)
 export default function ChatContextMenu({ data }) {
   const { deleteMessage, editMessage } = useChatActionsContext();
   const { loggedInAccount } = useChatDataContext();
   const { msg, x, y, close } = data;
 
+  // Check if current user is the author of this message
   const isMsgOwner = msg.senderId == loggedInAccount.userId;
+
+  // Open confirmation modal to delete message (hide locally vs delete globally)
   const handleDelete = () => {
+    // If owner: allow choice between deleting for both or hiding for self
     isMsgOwner &&
       Swal.fire({
         title: "Delete Message",
@@ -28,6 +33,7 @@ export default function ChatContextMenu({ data }) {
           deleteMessage(msg.messageId, "hide", loggedInAccount.userId);
       });
 
+    // If not owner: allow hiding only for current user
     !isMsgOwner &&
       Swal.fire({
         title: "Delete Message",
@@ -42,6 +48,7 @@ export default function ChatContextMenu({ data }) {
       });
   };
 
+  // Open popup input to edit message content
   const handleEdit = () => {
     Swal.fire({
       title: "Edit Message",
@@ -53,6 +60,8 @@ export default function ChatContextMenu({ data }) {
       if (res.isConfirmed) editMessage(msg.messageId, res.value);
     });
   };
+
+  // Render context menu popup portal attached directly to document.body
   return createPortal(
     <div
       onClick={() => close()}

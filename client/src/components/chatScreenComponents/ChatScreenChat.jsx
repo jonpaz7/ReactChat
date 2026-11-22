@@ -5,16 +5,19 @@ import {
 } from "../../context/ChatContext";
 import ChatContextMenu from "./ChatContextMenu";
 
+// Active conversation view: displays message thread, handles sending, and context menus
 export default function ChatScreenChat() {
   const { openedChat, messages, loggedInAccount, users } = useChatDataContext();
   const { sendMessage } = useChatActionsContext();
 
+  // Local state for input draft, message type, and context menu coordinates
   const [draftMessage, setDraftMessage] = useState("");
   const [messageType, setMessageType] = useState("text");
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuData, setContextMenuData] = useState({});
   const messagesEndRef = useRef(null);
 
+  // Auto-scroll to latest message on update or chat switch
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
@@ -22,12 +25,15 @@ export default function ChatScreenChat() {
     });
   }, [messages, openedChat?.chatId]);
 
+  // Don't render chat view if no conversation is currently active
   if (!openedChat) return;
 
+  // Handle draft text change
   const handleInputChange = (e) => {
     setDraftMessage(e.target.value);
   };
 
+  // Dispatch new message and reset text box
   const handleSend = () => {
     if (draftMessage.trim()) {
       sendMessage(openedChat.chatId, messageType, draftMessage);
@@ -35,6 +41,7 @@ export default function ChatScreenChat() {
     }
   };
 
+  // Open custom context menu on right click at mouse coordinates
   const handleContextMenu = (e, msg) => {
     setContextMenuData({
       msg: msg,
@@ -45,8 +52,10 @@ export default function ChatScreenChat() {
     setShowContextMenu(true);
   };
 
+  // Render message history container and bottom input bar
   return (
     <>
+      {/* Context menu modal portal */}
       {showContextMenu && <ChatContextMenu data={contextMenuData} />}
       <div
         style={{
@@ -56,6 +65,7 @@ export default function ChatScreenChat() {
           minHeight: 0,
         }}
       >
+        {/* Scrollable messages container */}
         <div
           style={{
             flex: 1,
@@ -69,6 +79,7 @@ export default function ChatScreenChat() {
             .filter((msg) => {
               const isDeletedByMe = msg.deleterId?.has(loggedInAccount.userId);
 
+              // Keep messages that belong to this chat and haven't been hidden by current user
               if (msg.chatId === openedChat.chatId) {
                 if (isDeletedByMe) return false;
                 else return true;
@@ -102,8 +113,11 @@ export default function ChatScreenChat() {
                 </p>
               );
             })}
+          {/* Scroll anchor target */}
           <div ref={messagesEndRef}></div>
         </div>
+
+        {/* Message composer input bar */}
         <div style={{ display: "flex", padding: "8px", gap: "8px" }}>
           <input
             style={{ flex: 1 }}

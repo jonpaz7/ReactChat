@@ -2,14 +2,17 @@ import { useState } from "react";
 import { useChatActionsContext } from "../context/ChatContext";
 import Swal from "sweetalert2";
 
+// Registration form component for creating a new account
 export default function CreatingAccount() {
   const { createAccount } = useChatActionsContext();
 
+  // Form input state
   const [credentials, setCredentials] = useState({
     userName: "",
     userPassword: "",
   });
 
+  // Track changes to inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCredentials((prev) => ({
@@ -18,9 +21,11 @@ export default function CreatingAccount() {
     }));
   };
 
+  // Validate inputs and trigger account creation
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Prevent submission if fields are empty
     if (!credentials.userName.trim() || !credentials.userPassword.trim()) {
       Swal.fire({
         title: "Missing Details",
@@ -30,6 +35,7 @@ export default function CreatingAccount() {
       return;
     }
 
+    // Call creation handler and reset form on success
     const isSuccess = createAccount(credentials);
 
     if (isSuccess) {
@@ -45,6 +51,7 @@ export default function CreatingAccount() {
     }
   };
 
+  // Render registration form UI
   return (
     <div style={{ margin: " 0 auto" }}>
       <h1>Create Your Account</h1>

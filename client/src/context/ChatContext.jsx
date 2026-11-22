@@ -4,26 +4,31 @@ import { io } from "socket.io-client";
 import { socket } from "../services/socket.js";
 
 const DOMAIN = "http://localhost:5000";
-export default function ChatContext({ children }) {
-  //=========================================== Data ==========================
 
+// Provider component managing chat state and server communication
+export default function ChatContext({ children }) {
+  //=========================================== Data States ==========================
+
+  // Users, active chats, and message history
   const [users, setUsers] = useState([]);
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
 
+  // Session state: current user and active conversation ID
   const [loggedInUsername, setLoggedInUsername] = useState("");
   const [openedChatId, setOpenedChatId] = useState("");
 
+  // Derived state: active account object and active chat object
   const loggedInAccount = users
     ? users.find((user) => user.userName === loggedInUsername)
     : null;
   const openedChat = chats.find((chat) => chat.chatId === openedChatId) || null;
 
-  //=========================================== Server Cumunication ==========================
+  //=========================================== Server Communication ==========================
 
-  //=================== Loads the data from the server
+  // Fetch initial data on mount and subscribe to real-time socket events
   useEffect(() => {
-    // Loads users
+    // Fetch initial list of users from server
     const fetchInitUsersData = async () => {
       try {
         const res = await fetch(`${DOMAIN}/api/users`);
@@ -36,7 +41,8 @@ export default function ChatContext({ children }) {
       }
     };
     fetchInitUsersData();
-    // Loads chats
+
+    // Fetch initial list of chats from server
     const fetchInitChatsData = async () => {
       try {
         const res = await fetch(`${DOMAIN}/api/chats`);
@@ -49,7 +55,8 @@ export default function ChatContext({ children }) {
       }
     };
     fetchInitChatsData();
-    // Loads messages
+
+    // Fetch initial messages list from server
     const fetchInitMessagesData = async () => {
       try {
         const res = await fetch(`${DOMAIN}/api/messages`);
@@ -63,19 +70,22 @@ export default function ChatContext({ children }) {
     };
     fetchInitMessagesData();
 
+    // Listen for new user registration events from socket
     socket.on("account_created", (newAccount) => {
       setUsers((prevUsers) => {
         return [...prevUsers, newAccount];
       });
     });
 
+    // Listen for new chat creation events from socket
     socket.on("chat_created", (newChat) => {
       setChats((prevChats) => [...prevChats, newChat]);
     });
   }, []);
 
-  //=========================================== Functions ==========================
+  //=========================================== Action Functions ==========================
 
+  // Register a new user account via API and auto-login on success
   const createAccount = async ({ userName, userPassword }) => {
     const res = await fetch(`${DOMAIN}/api/users/register`, {
       method: "POST",
@@ -87,7 +97,6 @@ export default function ChatContext({ children }) {
     if (!res.ok) {
       Swal.fire({
         title: data.error || "Registration Failed",
-
         icon: "error",
       });
       return false;
@@ -97,6 +106,7 @@ export default function ChatContext({ children }) {
     return true;
   };
 
+  // Authenticate user credentials and set session state
   const loginAccount = async ({ userName, userPassword }) => {
     const res = await fetch(`${DOMAIN}/api/users/login`, {
       method: "POST",
@@ -127,6 +137,7 @@ export default function ChatContext({ children }) {
     return true;
   };
 
+  // Find or create a chat with the selected user, then mark it as opened
   const openChat = async (userId) => {
     let selectedChat =
       chats &&
@@ -144,6 +155,7 @@ export default function ChatContext({ children }) {
     setOpenedChatId(selectedChat.chatId);
   };
 
+  // Post request to create a new chat between current user and target user
   const createChat = async (userId) => {
     const res = await fetch(`${DOMAIN}/api/chats/create`, {
       method: "POST",
@@ -163,6 +175,7 @@ export default function ChatContext({ children }) {
     return data;
   };
 
+  // Send a message and append it to local messages state
   const sendMessage = (chatId, messageType, messageContent) => {
     const newMessage = {
       messageId: `msg_${crypto.randomUUID()}`,
@@ -176,6 +189,7 @@ export default function ChatContext({ children }) {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
+  // Update content of an existing message in local state
   const editMessage = (msgId, newContent) => {
     setMessages((prevMessages) => {
       return messages.map((msg) => {
@@ -190,7 +204,9 @@ export default function ChatContext({ children }) {
     });
   };
 
+  // Delete message: either hide it for current user or remove permanently for all
   const deleteMessage = (msgId, deleteMode, deleterId) => {
+    // Hide mode: mark message as hidden for current user only
     if (deleteMode === "hide") {
       setMessages((prevMessages) => {
         return prevMessages.map((msg) => {
@@ -206,6 +222,7 @@ export default function ChatContext({ children }) {
       });
     }
 
+    // Permanent mode: completely remove message from array
     if (deleteMode === "permanent") {
       setMessages((prevMessages) => {
         return prevMessages.filter((msg) => {
@@ -216,7 +233,7 @@ export default function ChatContext({ children }) {
     }
   };
 
-  //=========================================== Return Section ==========================
+  //=========================================== Context Value Bundling ==========================
 
   const dataContextValue = {
     loggedInAccount,
@@ -236,6 +253,7 @@ export default function ChatContext({ children }) {
     editMessage,
   };
 
+  // Render context providers wrapping child components
   return (
     <ChatDataContext.Provider value={dataContextValue}>
       <ChatActionsContext.Provider value={actionsContextValue}>
@@ -250,9 +268,12 @@ export default function ChatContext({ children }) {
 export const ChatDataContext = createContext(null);
 export const ChatActionsContext = createContext(null);
 
+// Custom hook to consume chat data state
 export const useChatDataContext = () => {
   return useContext(ChatDataContext);
 };
+
+// Custom hook to consume chat actions and handlers
 export const useChatActionsContext = () => {
   return useContext(ChatActionsContext);
 };
