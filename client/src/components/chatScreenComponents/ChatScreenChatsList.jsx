@@ -9,7 +9,7 @@ export default function ChatScreenChatsList() {
   return (
     <div style={{ flex: 1, overflowY: "auto" }}>
       {chats
-        .filter((chat) => chat.participants.includes(loggedInAccount.userId))
+        .filter((chat) => chat.participants?.includes(loggedInAccount.userId))
         .map((chat) => {
           const otherUserId = chat.participants.find(
             (participantId) => participantId !== loggedInAccount.userId,

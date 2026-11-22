@@ -12,7 +12,7 @@ export default function ChatContext({ children }) {
   const [messages, setMessages] = useState([]);
 
   const [loggedInUsername, setLoggedInUsername] = useState("");
-  const [openedChatId, setOpenedChatId] = useState(null);
+  const [openedChatId, setOpenedChatId] = useState("");
 
   const loggedInAccount = users
     ? users.find((user) => user.userName === loggedInUsername)
@@ -68,6 +68,10 @@ export default function ChatContext({ children }) {
         return [...prevUsers, newAccount];
       });
     });
+
+    socket.on("chat_created", (newChat) => {
+      setChats((prevChats) => [...prevChats, newChat]);
+    });
   }, []);
 
   //=========================================== Functions ==========================
@@ -89,50 +93,74 @@ export default function ChatContext({ children }) {
       return false;
     }
 
-    //setLoggedInUsername(data.userName);
+    loginAccount(data);
     return true;
   };
 
-  const loginAccount = ({ userName, userPassword }) => {
-    const matchedUser = users.find((user) => user.userName === userName);
+  const loginAccount = async ({ userName, userPassword }) => {
+    const res = await fetch(`${DOMAIN}/api/users/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userName, userPassword }),
+    });
 
-    if (!matchedUser || matchedUser.userPassword !== userPassword) {
+    const data = await res.json();
+
+    if (!res.ok) {
       Swal.fire({
         title: "Wrong Details",
-        text: "One or more details is wrong",
+        text: data.error || "One or more details is wrong",
         timer: 2000,
-        showConfirmButton: false,
+        icon: "error",
       });
       return false;
     }
 
-    setLoggedInUsername(matchedUser.userName);
+    Swal.fire({
+      title: "logged In Successfuly",
+      timer: 1500,
+      icon: "success",
+      showConfirmButton: false,
+    });
+
+    setLoggedInUsername(data.userName);
     return true;
   };
 
-  const openChat = (userId) => {
-    let selectedChat = chats.find((chat) => {
-      return (
-        chat.participants.includes(loggedInAccount.userId) &&
-        chat.participants.includes(userId)
-      );
-    });
+  const openChat = async (userId) => {
+    let selectedChat =
+      chats &&
+      chats.find((chat) => {
+        return (
+          chat.participants.includes(loggedInAccount.userId) &&
+          chat.participants.includes(userId)
+        );
+      });
 
     if (!selectedChat) {
-      selectedChat = createChat(userId);
+      selectedChat = await createChat(userId);
     }
 
     setOpenedChatId(selectedChat.chatId);
   };
 
-  const createChat = (userId) => {
-    const newChat = {
-      chatId: `chat_${crypto.randomUUID()}`,
-      participants: [loggedInAccount.userId, userId],
-    };
+  const createChat = async (userId) => {
+    const res = await fetch(`${DOMAIN}/api/chats/create`, {
+      method: "POST",
+      headers: { "Content-type": "application/json" },
+      body: JSON.stringify({
+        loggedInAccountUserId: loggedInAccount.userId,
+        userId,
+      }),
+    });
+    const data = await res.json();
 
-    setChats((prevChats) => [...prevChats, newChat]);
-    return newChat;
+    if (!res.ok) {
+      console.log(data.error);
+      return false;
+    }
+
+    return data;
   };
 
   const sendMessage = (chatId, messageType, messageContent) => {
