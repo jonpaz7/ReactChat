@@ -10,13 +10,34 @@ router.get("/", (req, res) => {
 
 router.post("/send", (req, res) => {
   try {
-    const { newMessage, chat } = store.sendMessage(req.body);
+    const newMessage = store.sendMessage(req.body);
 
     const io = req.app.get("io");
+    const chat = store.getChatById(req.body.chatId);
 
     const chatParticipants = [...new Set(chat.participants)];
     chatParticipants.forEach((pid) => {
       io.to(pid).emit("new_message", newMessage);
+    });
+
+    res.status(201).json("");
+  } catch (err) {
+    console.log(err);
+    res.status(400);
+  }
+});
+
+router.post("/edit", (req, res) => {
+  try {
+    const editedMessage = store.editMessage(req.body);
+
+    const io = req.app.get("io");
+
+    const chat = store.getChatById(req.body.chatId);
+    const chatParticipants = [...new Set(chat.participants)];
+
+    chatParticipants.forEach((pid) => {
+      io.to(pid).emit("message_edited", editedMessage);
     });
 
     res.status(201).json("");

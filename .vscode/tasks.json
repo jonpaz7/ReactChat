@@ -1,0 +1,58 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Terminal 1 - Server",
+      "type": "shell",
+      "command": "cd server && npm install && npm run dev",
+      "options": {
+        "shell": {
+          "executable": "C:\\AI\\Git\\bin\\bash.exe",
+          "args": ["-c"]
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Terminal 2 - Frontend",
+      "type": "shell",
+      "command": "cd client && npm install && npm run dev",
+      "options": {
+        "shell": {
+          "executable": "C:\\AI\\Git\\bin\\bash.exe",
+          "args": ["-c"]
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Open Browser Tabs",
+      "type": "shell",
+      "command": "sleep 2 && start chrome --user-data-dir=\"$TEMP/chrome-dev\" --no-first-run --new-window --window-position=0,0 --window-size=768,820 http://localhost:5173 && start msedge --user-data-dir=\"$TEMP/edge-dev\" --no-first-run --new-window --window-position=768,0 --window-size=768,820 http://localhost:5173",
+      "options": {
+        "shell": {
+          "executable": "C:\\AI\\Git\\bin\\bash.exe",
+          "args": ["-c"]
+        }
+      },
+      "presentation": {
+        "reveal": "never"
+      }
+    },
+    {
+      "label": "Start Full Environment",
+      "dependsOn": [
+        "Terminal 1 - Server",
+        "Terminal 2 - Frontend",
+        "Open Browser Tabs"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

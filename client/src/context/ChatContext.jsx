@@ -86,10 +86,21 @@ export default function ChatContext({ children }) {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
 
+    socket.on("message_edited", (editedMessage) => {
+      setMessages((prevMessages) => {
+        return prevMessages.map((msg) => {
+          if (msg.messageId === editedMessage.messageId) {
+            return editedMessage;
+          }
+          return msg;
+        });
+      });
+    });
     return () => {
       socket.off("account_created");
       socket.off("chat_created");
       socket.off("new_message");
+      socket.off("message_edited");
     };
   }, []);
 
@@ -199,17 +210,11 @@ export default function ChatContext({ children }) {
   };
 
   // Update content of an existing message in local state
-  const editMessage = (msgId, newContent) => {
-    setMessages((prevMessages) => {
-      return messages.map((msg) => {
-        if (msg.messageId === msgId) {
-          return {
-            ...msg,
-            content: newContent,
-          };
-        }
-        return msg;
-      });
+  const editMessage = async (msgId, newContent) => {
+    await fetch(`${DOMAIN}/api/messages/edit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chatId: openedChat.chatId, msgId, newContent }),
     });
   };
 

@@ -1,7 +1,20 @@
 // In-memory data collections (state stores)
-let users = [];
+let users = [
+  {
+    userId: `usr_${crypto.randomUUID()}`,
+    userName: "1",
+    userPassword: "1",
+    avatar: `https://api.dicebear.com/10.x/personas/svg?seed=1}`,
+  },
+  {
+    userId: `usr_${crypto.randomUUID()}`,
+    userName: "2",
+    userPassword: "2",
+    avatar: `https://api.dicebear.com/10.x/personas/svg?seed=2}`,
+  },
+];
 let chats = [];
-let messages = ["msgssssssssssssssssssssss"];
+let messages = [];
 
 // Retrieve all stored users
 export const getUsersData = () => {
@@ -11,6 +24,11 @@ export const getUsersData = () => {
 // Retrieve all stored chats
 export const getChatsData = () => {
   return chats;
+};
+
+export const getChatById = (chatId) => {
+  const chat = chats.find((c) => c.chatId === chatId);
+  return chat;
 };
 
 // Retrieve all stored messages
@@ -90,6 +108,16 @@ export const sendMessage = ({
 
   messages.push(newMessage);
 
-  const chat = chats.find((c) => c.chatId === chatId);
-  return { newMessage, chat };
+  return newMessage;
+};
+
+export const editMessage = ({ msgId, newContent }) => {
+  const originalMessageIndex = messages.findIndex((m) => m.messageId === msgId);
+  const editedMessage = {
+    ...messages[originalMessageIndex],
+    content: newContent,
+  };
+
+  messages[originalMessageIndex] = editedMessage;
+  return editedMessage;
 };
