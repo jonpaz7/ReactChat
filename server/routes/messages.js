@@ -1,15 +1,10 @@
 import express from "express";
+import * as store from "../data/store.js";
 
 const router = express.Router();
 
-let messages = [{ msgid: 1, content: "hello world" }];
-
 router.get("/", (req, res) => {
-  res.json(messages);
+  res.json(store.getMessagesData());
 });
-
-export const addMessage = (data) => {
-  return "added successfuly";
-};
 
 export default router;

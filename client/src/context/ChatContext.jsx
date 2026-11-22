@@ -3,54 +3,56 @@ import Swal from "sweetalert2";
 import { io } from "socket.io-client";
 import { socket } from "../services/socket.js";
 
+const DOMAIN = "http://localhost:5000";
 export default function ChatContext({ children }) {
   //=========================================== Data ==========================
 
-  const [users, setUsers] = useState(() => loadData("users"));
-  const [chats, setChats] = useState(() => loadData("chats"));
-  const [messages, setMessages] = useState(/*() => loadData("messages")*/);
+  const [users, setUsers] = useState([]);
+  const [chats, setChats] = useState([]);
+  const [messages, setMessages] = useState([]);
 
-  const [loggedInUsername, setLoggedInUsername] = useState("1");
+  const [loggedInUsername, setLoggedInUsername] = useState("");
   const [openedChatId, setOpenedChatId] = useState(null);
 
-  const loggedInAccount =
-    users.find((user) => user.userName === loggedInUsername) || null;
+  const loggedInAccount = users
+    ? users.find((user) => user.userName === loggedInUsername)
+    : null;
   const openedChat = chats.find((chat) => chat.chatId === openedChatId) || null;
 
   //=========================================== Server Cumunication ==========================
 
+  //=================== Loads the data from the server
   useEffect(() => {
-    //=================== Loads the data from the server
     // Loads users
     const fetchInitUsersData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/messages");
+        const res = await fetch(`${DOMAIN}/api/users`);
         const data = await res.json();
 
-        setMessages(data);
+        setUsers(data);
         console.log(data);
       } catch {
-        (err) => console.log("Couldnt load messages", err);
+        (err) => console.log("Couldnt load users", err);
       }
     };
     fetchInitUsersData();
     // Loads chats
     const fetchInitChatsData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/messages");
+        const res = await fetch(`${DOMAIN}/api/chats`);
         const data = await res.json();
 
-        setMessages(data);
+        setChats(data);
         console.log(data);
       } catch {
-        (err) => console.log("Couldnt load messages", err);
+        (err) => console.log("Couldnt load chats", err);
       }
     };
     fetchInitChatsData();
     // Loads messages
     const fetchInitMessagesData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/messages");
+        const res = await fetch(`${DOMAIN}/api/messages`);
         const data = await res.json();
 
         setMessages(data);
@@ -60,37 +62,34 @@ export default function ChatContext({ children }) {
       }
     };
     fetchInitMessagesData();
+
+    socket.on("account_created", (newAccount) => {
+      setUsers((prevUsers) => {
+        return [...prevUsers, newAccount];
+      });
+    });
   }, []);
 
   //=========================================== Functions ==========================
 
-  function loadData(storageKey) {
-    const savedData = localStorage.getItem(storageKey);
-    return savedData && savedData !== "undefined" ? JSON.parse(savedData) : [];
-  }
+  const createAccount = async ({ userName, userPassword }) => {
+    const res = await fetch(`${DOMAIN}/api/users/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userName, userPassword }),
+    });
+    const data = await res.json();
 
-  const createAccount = ({ userName, userPassword }) => {
-    if (
-      users.some(
-        (user) => user.userName.toLowerCase() === userName.trim().toLowerCase(),
-      )
-    ) {
+    if (!res.ok) {
       Swal.fire({
-        title: "User Name already taken",
-        timer: 2000,
+        title: data.error || "Registration Failed",
+
+        icon: "error",
       });
       return false;
     }
 
-    const newUser = {
-      userId: `usr_${crypto.randomUUID()}`,
-      userName: userName.trim(),
-      userPassword: userPassword.trim(),
-      avatar: `https://api.dicebear.com/10.x/personas/svg?seed=${userName.trim()}`,
-    };
-
-    setUsers((prevUsers) => [...prevUsers, newUser]);
-    setLoggedInUsername(newUser.userName);
+    //setLoggedInUsername(data.userName);
     return true;
   };
 

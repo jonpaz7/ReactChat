@@ -1,31 +1,31 @@
-export const users = [];
-export const chats = [];
-export const messagess = [];
+let users = [];
+let chats = ["chatssssssssssssssss"];
+let messages = ["msgssssssssssssssssssssss"];
 
-/* ========================================================
-   רשימת כל הפונקציות מתוך ChatContext.jsx
-   ======================================================== */
+export const getUsersData = () => {
+  return users;
+};
+export const getChatsData = () => {
+  return chats;
+};
+export const getMessagesData = () => {
+  return messages;
+};
 
-// 1. טעינת מידע ראשונית מה-localStorage (למשתמשים, צ'אטים, הודעות)
-// function loadData(storageKey)
+export const createAccount = ({ userName, userPassword }) => {
+  const isTaken = users.some(
+    (user) => user.userName?.toLowerCase() === userName.trim().toLowerCase(),
+  );
 
-// 2. יצירת חשבון משתמש חדש (בודק כפילות שם, מייצר userId ב-UUID, שומר avatar ו-setUsers)
-// const createAccount = ({ userName, userPassword })
+  if (isTaken) throw new Error("User Name Already Taken");
 
-// 3. התחברות לחשבון קיים (בודק התאמת שם וסיסמה, מעדכן loggedInUsername)
-// const loginAccount = ({ userName, userPassword })
+  const newUser = {
+    userId: `usr_${crypto.randomUUID()}`,
+    userName: userName.trim(),
+    userPassword: userPassword.trim(),
+    avatar: `https://api.dicebear.com/10.x/personas/svg?seed=${userName.trim()}`,
+  };
 
-// 4. פתיחת צ'אט (בודק אם כבר קיים צ'אט בין המחובר למשתמש היעד; אם לא קיים - יוצר חדש, ומעדכן openedChatId)
-// const openChat = (userId)
-
-// 5. יצירת צ'אט חדש בפועל (מייצר chatId ב-UUID, מוסיף לרשימת participants את שני המשתמשים ודוחף ל-chats)
-// const createChat = (userId)
-
-// 6. שליחת הודעה (מייצרת messageId ב-UUID, סוג, תוכן, chatId, senderId, ודוחפת ל-messages)
-// const sendMessage = (chatId, messageType, messageContent)
-
-// 7. עריכת תוכן הודעה קיימת (מחפשת לפי msgId ומעדכנת את content)
-// const editMessage = (msgId, newContent)
-
-// 8. מחיקת/הסתרת הודעה (אם deleteMode === "hide" - הופכת ל-isHidden: true ומוסיפה deleterId ל-Set)
-// const deleteMessage = (msgId, deleteMode, deleterId)
+  users.push(newUser);
+  return newUser;
+};
