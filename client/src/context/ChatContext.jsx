@@ -81,6 +81,16 @@ export default function ChatContext({ children }) {
     socket.on("chat_created", (newChat) => {
       setChats((prevChats) => [...prevChats, newChat]);
     });
+
+    socket.on("new_message", (newMessage) => {
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    });
+
+    return () => {
+      socket.off("account_created");
+      socket.off("chat_created");
+      socket.off("new_message");
+    };
   }, []);
 
   //=========================================== Action Functions ==========================
@@ -134,29 +144,28 @@ export default function ChatContext({ children }) {
     });
 
     setLoggedInUsername(data.userName);
+    socket.emit("account_logged_in", data.userId);
     return true;
   };
 
   // Find or create a chat with the selected user, then mark it as opened
   const openChat = async (userId) => {
-    let selectedChat =
-      chats &&
-      chats.find((chat) => {
-        return (
-          chat.participants.includes(loggedInAccount.userId) &&
-          chat.participants.includes(userId)
-        );
-      });
+    let selectedChat = chats.find((chat) => {
+      return (
+        chat.participants.includes(loggedInAccount.userId) &&
+        chat.participants.includes(userId)
+      );
+    });
 
     if (!selectedChat) {
-      selectedChat = await createChat(userId);
+      selectedChat = await getOrCreateChat(userId);
     }
 
     setOpenedChatId(selectedChat.chatId);
   };
 
   // Post request to create a new chat between current user and target user
-  const createChat = async (userId) => {
+  const getOrCreateChat = async (userId) => {
     const res = await fetch(`${DOMAIN}/api/chats/create`, {
       method: "POST",
       headers: { "Content-type": "application/json" },
@@ -175,18 +184,18 @@ export default function ChatContext({ children }) {
     return data;
   };
 
-  // Send a message and append it to local messages state
-  const sendMessage = (chatId, messageType, messageContent) => {
-    const newMessage = {
-      messageId: `msg_${crypto.randomUUID()}`,
-      senderId: loggedInAccount.userId,
-      type: messageType,
-      content: messageContent,
-      chatId: chatId,
-      isHidden: false,
-    };
-
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
+  // Send a message
+  const sendMessage = async (chatId, messageType, messageContent) => {
+    await fetch(`${DOMAIN}/api/messages/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        loggedInAccountUserId: loggedInAccount.userId,
+        chatId,
+        messageType,
+        messageContent,
+      }),
+    });
   };
 
   // Update content of an existing message in local state

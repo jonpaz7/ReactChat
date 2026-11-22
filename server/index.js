@@ -5,6 +5,7 @@ import { Server } from "socket.io";
 import usersRouter from "./routes/users.js";
 import chatsRouter from "./routes/chats.js";
 import messagesRouter from "./routes/messages.js";
+import chatHandler from "./sockets/chatHandler.js";
 
 // Initialize Express application and HTTP server
 const app = express();
@@ -28,6 +29,8 @@ app.use("/api/messages", messagesRouter);
 // Socket.io connection lifecycle handling
 io.on("connection", (socket) => {
   console.log(`user ${socket.id} got connected`);
+
+  chatHandler(io, socket);
 
   socket.on("disconnect", () => {
     console.log(`user got disconnected`);

@@ -6,9 +6,9 @@ import ChatContext from "./context/ChatContext.jsx";
 
 // Mount the React application wrapped with Global ChatContext provider
 createRoot(document.getElementById("root")).render(
+  //<StrictMode>
   <ChatContext>
-    <StrictMode>
-      <App />
-    </StrictMode>
+    <App />
   </ChatContext>,
+  // </StrictMode>,
 );

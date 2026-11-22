@@ -54,12 +54,42 @@ export const loginAccount = ({ userName, userPassword }) => {
 };
 
 // Create a new conversation/chat between two participants
-export const createChat = ({ loggedInAccountUserId, userId }) => {
-  const newChat = {
+export const getOrCreateChat = ({ loggedInAccountUserId, userId }) => {
+  const existingChat = chats.find((c) => {
+    return (
+      c.participants.includes(loggedInAccountUserId) &&
+      c.participants.includes(userId)
+    );
+  });
+
+  if (existingChat) return { existingChat, isNew: false };
+
+  const chat = {
     chatId: `chat_${crypto.randomUUID()}`,
     participants: [loggedInAccountUserId, userId],
   };
 
-  chats.push(newChat);
-  return newChat;
+  chats.push(chat);
+  return { chat, isNew: true };
+};
+
+export const sendMessage = ({
+  loggedInAccountUserId,
+  chatId,
+  messageType,
+  messageContent,
+}) => {
+  const newMessage = {
+    messageId: `msg_${crypto.randomUUID()}`,
+    senderId: loggedInAccountUserId,
+    type: messageType,
+    content: messageContent,
+    chatId: chatId,
+    isHidden: false,
+  };
+
+  messages.push(newMessage);
+
+  const chat = chats.find((c) => c.chatId === chatId);
+  return { newMessage, chat };
 };
