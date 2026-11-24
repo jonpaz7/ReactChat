@@ -121,3 +121,30 @@ export const editMessage = ({ msgId, newContent }) => {
   messages[originalMessageIndex] = editedMessage;
   return editedMessage;
 };
+
+export const deleteMessage = ({ chatId, msgId, deleteMode, deleterId }) => {
+  const messageToDeleteIndex = messages.findIndex((m) => m.messageId === msgId);
+
+  const deletedMessage = {
+    ...messages[messageToDeleteIndex],
+    isHidden: true,
+    deleterId: [
+      ...new Set([
+        ...(messages[messageToDeleteIndex].deleterId ?? []),
+        deleterId,
+      ]),
+    ],
+  };
+
+  // Hide mode: mark message as hidden for current user only
+  if (deleteMode === "hide") {
+    messages[messageToDeleteIndex] = deletedMessage;
+    return { deletedMessage, deleteMode };
+  }
+
+  // Permanent mode: completely remove message from array
+  if (deleteMode === "permanent") {
+    messages.splice(messageToDeleteIndex, 1);
+    return { deletedMessage, deleteMode };
+  }
+};

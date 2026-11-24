@@ -96,6 +96,29 @@ export default function ChatContext({ children }) {
         });
       });
     });
+
+    socket.on("message_deleted", ({ deletedMessage, deleteMode }) => {
+      if (deleteMode === "hide") {
+        setMessages((prevMessages) => {
+          return prevMessages.map((msg) => {
+            if (msg.messageId === deletedMessage.messageId) {
+              return deletedMessage;
+            }
+            return msg;
+          });
+        });
+      }
+
+      // Permanent mode: completely remove message from array
+      if (deleteMode === "permanent") {
+        setMessages((prevMessages) => {
+          return prevMessages.filter((msg) => {
+            if (msg.messageId === deletedMessage.messageId) return false;
+            return true;
+          });
+        });
+      }
+    });
     return () => {
       socket.off("account_created");
       socket.off("chat_created");
@@ -219,32 +242,17 @@ export default function ChatContext({ children }) {
   };
 
   // Delete message: either hide it for current user or remove permanently for all
-  const deleteMessage = (msgId, deleteMode, deleterId) => {
-    // Hide mode: mark message as hidden for current user only
-    if (deleteMode === "hide") {
-      setMessages((prevMessages) => {
-        return prevMessages.map((msg) => {
-          if (msg.messageId === msgId) {
-            return {
-              ...msg,
-              isHidden: true,
-              deleterId: new Set([...(msg.deleterId ?? []), deleterId]),
-            };
-          }
-          return msg;
-        });
-      });
-    }
-
-    // Permanent mode: completely remove message from array
-    if (deleteMode === "permanent") {
-      setMessages((prevMessages) => {
-        return prevMessages.filter((msg) => {
-          if (msg.messageId === msgId) return false;
-          return true;
-        });
-      });
-    }
+  const deleteMessage = async (msgId, deleteMode, deleterId) => {
+    await fetch(`${DOMAIN}/api/messages/delete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chatId: openedChat.chatId,
+        msgId,
+        deleteMode,
+        deleterId,
+      }),
+    });
   };
 
   //=========================================== Context Value Bundling ==========================

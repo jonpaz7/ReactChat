@@ -47,4 +47,24 @@ router.post("/edit", (req, res) => {
   }
 });
 
+router.post("/delete", (req, res) => {
+  try {
+    const { deletedMessage, deleteMode } = store.deleteMessage(req.body);
+
+    const io = req.app.get("io");
+    const chat = store.getChatById(req.body.chatId);
+
+    const chatParticipants = [...new Set(chat.participants)];
+
+    chatParticipants.forEach((pid) => {
+      io.to(pid).emit("message_deleted", { deletedMessage, deleteMode });
+    });
+
+    res.status(201).json(" ");
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(" ");
+  }
+});
+
 export default router;

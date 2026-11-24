@@ -77,7 +77,9 @@ export default function ChatScreenChat() {
         >
           {messages
             .filter((msg) => {
-              const isDeletedByMe = msg.deleterId?.has(loggedInAccount.userId);
+              const isDeletedByMe = msg.deleterId?.includes(
+                loggedInAccount.userId,
+              );
 
               // Keep messages that belong to this chat and haven't been hidden by current user
               if (msg.chatId === openedChat.chatId) {
