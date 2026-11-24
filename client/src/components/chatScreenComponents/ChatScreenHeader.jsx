@@ -1,48 +1,28 @@
-import { useChatDataContext } from "../../context/ChatContext";
+import { useChatDataContext, useChatActionsContext } from "../../context/ChatContext";
 
-// Header component for user info, logout action, or active chat navigation
 export default function ChatScreenHeader() {
-  const {
-    loggedInAccount,
-    setLoggedInUsername,
-    openedChat,
-    setOpenedChatId,
-    users,
-  } = useChatDataContext();
+  const { loggedInAccount, openedChat, setOpenedChatId, users } = useChatDataContext();
+  const { logoutAccount } = useChatActionsContext();
 
-  // If inside an active conversation: display back button and interlocutor name
+  // ── Active chat view — show back button and other participant's name ────────
   if (openedChat) {
-    const otherParticipant = users.find(
-      (user) =>
-        user.userId ===
-        openedChat.participants.find(
-          (participantId) => participantId !== loggedInAccount.userId,
-        ),
+    const otherParticipantId = openedChat.participants.find(
+      (id) => id !== loggedInAccount.userId
     );
+    const otherParticipant = users.find((u) => u.userId === otherParticipantId);
+
     return (
       <div style={{ padding: "8px 12px" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
-          {/* Back button to return to chat list */}
           <button
-            style={{
-              all: "unset",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "4px 10px",
-              fontSize: "12px",
-              fontWeight: "500",
-              lineHeight: 1,
-              borderRadius: "6px",
-              cursor: "pointer",
-              userSelect: "none",
-            }}
+            style={buttonStyle}
             onClick={() => setOpenedChatId(null)}
+            title="Back to chat list"
           >
-            Back
+            ← Back
           </button>
           <h4 style={{ margin: "0", flex: 1, textAlign: "center" }}>
-            {otherParticipant.userName}
+            {otherParticipant?.userName ?? "Unknown"}
           </h4>
         </div>
         <hr />
@@ -50,31 +30,16 @@ export default function ChatScreenHeader() {
     );
   }
 
-  // Default header when on main chats list: displays user name, app title, and logout
+  // ── Default view — app title, logged-in username, and logout ────────────────
   return (
     <div style={{ padding: "8px 12px" }}>
       <div style={{ display: "flex", alignItems: "center" }}>
         <h5 style={{ margin: "0" }}>{loggedInAccount.userName}</h5>
-        <h4 style={{ margin: "0", flex: 1, textAlign: "center" }}>
-          CheatyChat
-        </h4>
-        {/* Logout button */}
+        <h4 style={{ margin: "0", flex: 1, textAlign: "center" }}>CheatyChat</h4>
         <button
-          style={{
-            all: "unset",
-            boxSizing: "border-box",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "4px 10px",
-            fontSize: "12px",
-            fontWeight: "500",
-            lineHeight: 1,
-            borderRadius: "6px",
-            cursor: "pointer",
-            userSelect: "none",
-          }}
-          onClick={() => setLoggedInUsername(null)}
+          style={buttonStyle}
+          onClick={logoutAccount}
+          title="Log out"
         >
           Logout
         </button>
@@ -83,3 +48,19 @@ export default function ChatScreenHeader() {
     </div>
   );
 }
+
+// Shared button reset style — layout only, no visual design
+const buttonStyle = {
+  all: "unset",
+  boxSizing: "border-box",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "4px 10px",
+  fontSize: "12px",
+  fontWeight: "500",
+  lineHeight: 1,
+  borderRadius: "6px",
+  cursor: "pointer",
+  userSelect: "none",
+};

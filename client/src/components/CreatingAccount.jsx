@@ -2,58 +2,37 @@ import { useState } from "react";
 import { useChatActionsContext } from "../context/ChatContext";
 import Swal from "sweetalert2";
 
-// Registration form component for creating a new account
 export default function CreatingAccount() {
   const { createAccount } = useChatActionsContext();
 
-  // Form input state
-  const [credentials, setCredentials] = useState({
-    userName: "",
-    userPassword: "",
-  });
+  const [credentials, setCredentials] = useState({ userName: "", userPassword: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Track changes to inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setCredentials((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setCredentials((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Validate inputs and trigger account creation
-  const handleSubmit = (e) => {
+  // Validate and submit the registration form
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prevent submission if fields are empty
     if (!credentials.userName.trim() || !credentials.userPassword.trim()) {
-      Swal.fire({
-        title: "Missing Details",
-        timer: 1000,
-        showConfirmButton: false,
-      });
+      Swal.fire({ title: "Please fill in all fields", icon: "warning", timer: 1500, showConfirmButton: false });
       return;
     }
 
-    // Call creation handler and reset form on success
-    const isSuccess = createAccount(credentials);
+    setIsSubmitting(true);
+    const success = await createAccount(credentials);
+    setIsSubmitting(false);
 
-    if (isSuccess) {
-      Swal.fire({
-        title: "Account Created Successfully",
-        timer: 1000,
-        showConfirmButton: false,
-      });
-      setCredentials({
-        userName: "",
-        userPassword: "",
-      });
+    if (success) {
+      setCredentials({ userName: "", userPassword: "" });
     }
   };
 
-  // Render registration form UI
   return (
-    <div style={{ margin: " 0 auto" }}>
+    <div style={{ margin: "0 auto" }}>
       <h1>Create Your Account</h1>
       <form
         style={{
@@ -66,25 +45,29 @@ export default function CreatingAccount() {
         }}
         onSubmit={handleSubmit}
       >
-        <label htmlFor="userName">What is your name</label>
+        <label htmlFor="register-username">What is your name</label>
         <input
           type="text"
           name="userName"
-          id="userName"
-          placeholder="Israel Nahari"
+          id="register-username"
+          placeholder="Israel Israeli"
           value={credentials.userName}
           onChange={handleInputChange}
+          autoComplete="username"
         />
-        <label htmlFor="userPassword">Choose a password</label>
+        <label htmlFor="register-password">Choose a password</label>
         <input
           type="password"
           name="userPassword"
-          id="userPassword"
-          placeholder="Israel Nahari"
+          id="register-password"
+          placeholder="••••••••"
           value={credentials.userPassword}
           onChange={handleInputChange}
+          autoComplete="new-password"
         />
-        <button type="submit">Create Account</button>
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Creating..." : "Create Account"}
+        </button>
       </form>
     </div>
   );

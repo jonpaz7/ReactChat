@@ -7,38 +7,37 @@ import chatsRouter from "./routes/chats.js";
 import messagesRouter from "./routes/messages.js";
 import chatHandler from "./sockets/chatHandler.js";
 
-// Initialize Express application and HTTP server
 const app = express();
 const server = http.createServer(app);
 
-// Initialize Socket.io instance with CORS enabled for all origins
+// Attach Socket.IO to the HTTP server with open CORS for local development
 const io = new Server(server, { cors: { origin: "*" } });
 
-// Attach socket.io instance to the app so routes can access it via req.app.get("io")
+// Make io accessible inside route handlers via req.app.get("io")
 app.set("io", io);
 
-// Middleware configuration
+// ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 
-// API route handlers
+// ─── REST API Routes ──────────────────────────────────────────────────────────
 app.use("/api/users", usersRouter);
 app.use("/api/chats", chatsRouter);
 app.use("/api/messages", messagesRouter);
 
-// Socket.io connection lifecycle handling
+// ─── Socket.IO Events ─────────────────────────────────────────────────────────
 io.on("connection", (socket) => {
-  console.log(`user ${socket.id} got connected`);
+  console.log(`Socket connected: ${socket.id}`);
 
   chatHandler(io, socket);
 
   socket.on("disconnect", () => {
-    console.log(`user got disconnected`);
+    console.log(`Socket disconnected: ${socket.id}`);
   });
 });
 
-// Start the server listener on specified port
-const PORT = 5000;
+// ─── Start Server ─────────────────────────────────────────────────────────────
+const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`The Server is running on http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });

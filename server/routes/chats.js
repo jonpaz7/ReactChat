@@ -3,17 +3,18 @@ import * as store from "../data/store.js";
 
 const router = express.Router();
 
-// GET /api/chats - Fetch all existing chats
+// GET /api/chats — return all stored chats
 router.get("/", (req, res) => {
-  res.json(store.getChatsData());
+  res.json(store.getAllChats());
 });
 
-// POST /api/chats/create - Create a new chat and notify connected clients
+// POST /api/chats/create — find or create a chat between two users
 router.post("/create", (req, res) => {
   try {
     const { chat, isNew } = store.getOrCreateChat(req.body);
 
     if (isNew) {
+      // Notify all clients only when a brand new chat is created
       const io = req.app.get("io");
       io.emit("chat_created", chat);
     }

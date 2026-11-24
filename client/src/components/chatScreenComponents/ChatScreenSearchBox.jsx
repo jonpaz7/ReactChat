@@ -1,33 +1,36 @@
 import { useState } from "react";
-import {
-  useChatDataContext,
-  useChatActionsContext,
-} from "../../context/ChatContext";
+import { useChatDataContext, useChatActionsContext } from "../../context/ChatContext";
 
-// Search bar to find registered users and initiate new conversations
 export default function ChatScreenSearchBox() {
   const { users, loggedInAccount, openedChat } = useChatDataContext();
   const { openChat } = useChatActionsContext();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Hide search box when viewing an open conversation
-  if (openedChat) return;
+  // Hide the search box while inside a conversation
+  if (openedChat) return null;
 
-  // Handle typing inside the search input
-  const handleInputChange = (e) => {
-    setSearchTerm(e.target.value);
+  // Filter users: exclude current user and match the search input
+  const matchedUsers = users.filter((user) => {
+    if (user.userId === loggedInAccount.userId) return false;
+    return user.userName.toLowerCase().includes(searchTerm.trim().toLowerCase());
+  });
+
+  const handleSelectUser = (userId) => {
+    openChat(userId);
+    setSearchTerm("");
   };
 
-  // Render input field and matching users dropdown
   return (
     <div style={{ position: "relative" }}>
       <input
         type="text"
-        placeholder="Search for chats"
+        placeholder="Search users to start a chat..."
         value={searchTerm}
         style={{ width: "90%", margin: "2px auto", display: "block" }}
-        onChange={handleInputChange}
+        onChange={(e) => setSearchTerm(e.target.value)}
       />
+
+      {/* Dropdown results — only shown when there is an active search term */}
       {searchTerm && (
         <div
           style={{
@@ -38,30 +41,19 @@ export default function ChatScreenSearchBox() {
             backgroundColor: "white",
           }}
         >
-          {/* Filter users excluding current user and matching search query */}
-          {users
-            .filter((user) => {
-              if (user.userId === loggedInAccount.userId) return false;
-              return user.userName
-                .toLowerCase()
-                .includes(searchTerm.trim().toLowerCase());
-            })
-            .map((user) => (
+          {matchedUsers.length === 0 ? (
+            <div style={{ padding: "4px 8px", color: "#aaa" }}>No users found</div>
+          ) : (
+            matchedUsers.map((user) => (
               <div
                 key={user.userId}
-                style={{
-                  border: "1px solid silver",
-                  padding: "4px 8px",
-                  cursor: "pointer",
-                }}
-                onClick={() => {
-                  openChat(user.userId);
-                  setSearchTerm("");
-                }}
+                style={{ border: "1px solid silver", padding: "4px 8px", cursor: "pointer" }}
+                onClick={() => handleSelectUser(user.userId)}
               >
                 <h4 style={{ margin: "0" }}>{user.userName}</h4>
               </div>
-            ))}
+            ))
+          )}
         </div>
       )}
     </div>

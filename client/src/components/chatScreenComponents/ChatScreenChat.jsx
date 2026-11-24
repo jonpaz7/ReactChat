@@ -1,71 +1,73 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  useChatDataContext,
-  useChatActionsContext,
-} from "../../context/ChatContext";
+import { useChatDataContext, useChatActionsContext } from "../../context/ChatContext";
 import ChatContextMenu from "./ChatContextMenu";
 
-// Active conversation view: displays message thread, handles sending, and context menus
 export default function ChatScreenChat() {
   const { openedChat, messages, loggedInAccount, users } = useChatDataContext();
   const { sendMessage } = useChatActionsContext();
 
-  // Local state for input draft, message type, and context menu coordinates
   const [draftMessage, setDraftMessage] = useState("");
-  const [messageType, setMessageType] = useState("text");
-  const [showContextMenu, setShowContextMenu] = useState(false);
-  const [contextMenuData, setContextMenuData] = useState({});
+  const [contextMenu, setContextMenu] = useState(null); // { msg, x, y } or null
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
-  // Auto-scroll to latest message on update or chat switch
+  // Scroll to the latest message whenever the message list or active chat changes
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, openedChat?.chatId]);
 
-  // Don't render chat view if no conversation is currently active
-  if (!openedChat) return;
+  // Auto-focus the input field when a chat is opened
+  useEffect(() => {
+    if (openedChat) inputRef.current?.focus();
+  }, [openedChat?.chatId]);
 
-  // Handle draft text change
-  const handleInputChange = (e) => {
-    setDraftMessage(e.target.value);
+  // Close context menu when pressing Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setContextMenu(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  if (!openedChat) return null;
+
+  // Filter messages: only show messages that belong to this chat and haven't been hidden by the current user
+  const visibleMessages = messages.filter((msg) => {
+    if (msg.chatId !== openedChat.chatId) return false;
+    const isHiddenByMe = msg.deleterId?.includes(loggedInAccount.userId);
+    return !isHiddenByMe;
+  });
+
+  const handleSend = () => {
+    const trimmed = draftMessage.trim();
+    if (!trimmed) return;
+    sendMessage(openedChat.chatId, "text", trimmed);
+    setDraftMessage("");
   };
 
-  // Dispatch new message and reset text box
-  const handleSend = () => {
-    if (draftMessage.trim()) {
-      sendMessage(openedChat.chatId, messageType, draftMessage);
-      setDraftMessage("");
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
   };
 
-  // Open custom context menu on right click at mouse coordinates
-  const handleContextMenu = (e, msg) => {
-    setContextMenuData({
-      msg: msg,
-      x: e.clientX,
-      y: e.clientY,
-      close: () => setShowContextMenu(false),
-    });
-    setShowContextMenu(true);
+  const openContextMenu = (e, msg) => {
+    e.preventDefault();
+    setContextMenu({ msg, x: e.clientX, y: e.clientY });
   };
 
-  // Render message history container and bottom input bar
   return (
     <>
-      {/* Context menu modal portal */}
-      {showContextMenu && <ChatContextMenu data={contextMenuData} />}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          minHeight: 0,
-        }}
-      >
-        {/* Scrollable messages container */}
+      {contextMenu && (
+        <ChatContextMenu
+          data={{ ...contextMenu, close: () => setContextMenu(null) }}
+        />
+      )}
+
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+        {/* Scrollable message list */}
         <div
           style={{
             flex: 1,
@@ -75,62 +77,55 @@ export default function ChatScreenChat() {
             overflowY: "auto",
           }}
         >
-          {messages
-            .filter((msg) => {
-              const isDeletedByMe = msg.deleterId?.includes(
-                loggedInAccount.userId,
-              );
+          {visibleMessages.length === 0 && (
+            <p style={{ textAlign: "center", color: "#aaa", marginTop: "20px" }}>
+              No messages yet. Say hello! 👋
+            </p>
+          )}
 
-              // Keep messages that belong to this chat and haven't been hidden by current user
-              if (msg.chatId === openedChat.chatId) {
-                if (isDeletedByMe) return false;
-                else return true;
-              }
-              return false;
-            })
-            .map((msg) => {
-              const isSentByMe = msg.senderId === loggedInAccount.userId;
-              const sender = users.find((user) => user.userId === msg.senderId);
-              return (
-                <p
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    handleContextMenu(e, msg);
-                  }}
-                  key={msg.messageId}
-                  style={{
-                    textAlign: "left",
-                    backgroundColor: isSentByMe ? "#DCF8C6" : "#E7F3FF",
-                    width: "fit-content",
-                    padding: "2px 6px",
-                    margin: isSentByMe
-                      ? "2px auto 2px 2px"
-                      : "2px 2px 2px auto",
+          {visibleMessages.map((msg) => {
+            const isMine = msg.senderId === loggedInAccount.userId;
+            const sender = users.find((u) => u.userId === msg.senderId);
+            const senderName = sender?.userName ?? "Unknown";
 
-                    borderRadius: "5px",
-                  }}
-                >
-                  <strong>{sender.userName}: </strong>
-                  {msg.content}
-                </p>
-              );
-            })}
-          {/* Scroll anchor target */}
-          <div ref={messagesEndRef}></div>
+            return (
+              <p
+                key={msg.messageId}
+                onContextMenu={(e) => openContextMenu(e, msg)}
+                title="Right-click for options"
+                style={{
+                  textAlign: "left",
+                  backgroundColor: isMine ? "#DCF8C6" : "#E7F3FF",
+                  width: "fit-content",
+                  padding: "2px 6px",
+                  margin: isMine ? "2px auto 2px 2px" : "2px 2px 2px auto",
+                  borderRadius: "5px",
+                  cursor: "default",
+                }}
+              >
+                <strong>{senderName}: </strong>
+                {msg.content}
+              </p>
+            );
+          })}
+
+          {/* Invisible anchor used for auto-scrolling to the bottom */}
+          <div ref={messagesEndRef} />
         </div>
 
-        {/* Message composer input bar */}
+        {/* Message input bar */}
         <div style={{ display: "flex", padding: "8px", gap: "8px" }}>
           <input
+            ref={inputRef}
             style={{ flex: 1 }}
-            placeholder="Message"
+            placeholder="Type a message... (Enter to send)"
             value={draftMessage}
-            onChange={handleInputChange}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSend();
-            }}
+            onChange={(e) => setDraftMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
-          <button onClick={handleSend}>Send</button>
+          <button onClick={handleSend} disabled={!draftMessage.trim()}>
+            Send
+          </button>
         </div>
       </div>
     </>

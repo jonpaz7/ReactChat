@@ -1,7 +1,6 @@
 import { io } from "socket.io-client";
+import { SERVER_URL } from "../config.js";
 
-// Backend server connection URL
-const SERVER_URL = "http://localhost:5000";
-
-// Shared Socket.io client instance
-export const socket = io(SERVER_URL);
+// Create socket instance but delay connection until after user logs in.
+// autoConnect: false prevents an anonymous WebSocket from opening before authentication.
+export const socket = io(SERVER_URL, { autoConnect: false });

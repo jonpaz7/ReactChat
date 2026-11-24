@@ -1,226 +1,205 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import Swal from "sweetalert2";
-import { io } from "socket.io-client";
 import { socket } from "../services/socket.js";
+import { SERVER_URL } from "../config.js";
 
-const DOMAIN = "http://localhost:5000";
+// ─── Context Definitions ──────────────────────────────────────────────────────
 
-// Provider component managing chat state and server communication
+export const ChatDataContext = createContext(null);
+export const ChatActionsContext = createContext(null);
+
+// Custom hooks for consuming each context
+export const useChatDataContext = () => useContext(ChatDataContext);
+export const useChatActionsContext = () => useContext(ChatActionsContext);
+
+// ─── Provider ─────────────────────────────────────────────────────────────────
+
 export default function ChatContext({ children }) {
-  //=========================================== Data States ==========================
+  // ── State ──────────────────────────────────────────────────────────────────
 
-  // Users, active chats, and message history
   const [users, setUsers] = useState([]);
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
 
-  // Session state: current user and active conversation ID
+  // The logged-in user is tracked by username and derived from the users list
   const [loggedInUsername, setLoggedInUsername] = useState("");
-  const [openedChatId, setOpenedChatId] = useState("");
+  const [openedChatId, setOpenedChatId] = useState(null);
 
-  // Derived state: active account object and active chat object
-  const loggedInAccount = users
-    ? users.find((user) => user.userName === loggedInUsername)
-    : null;
-  const openedChat = chats.find((chat) => chat.chatId === openedChatId) || null;
+  // Derived values — computed from state, not stored separately
+  const loggedInAccount = users.find((u) => u.userName === loggedInUsername) ?? null;
+  const openedChat = chats.find((c) => c.chatId === openedChatId) ?? null;
 
-  //=========================================== Server Communication ==========================
+  // ── Initial Data Fetch + Socket Listeners ──────────────────────────────────
 
-  // Fetch initial data on mount and subscribe to real-time socket events
   useEffect(() => {
-    // Fetch initial list of users from server
-    const fetchInitUsersData = async () => {
+    // Load all users, chats and messages from the server on first render
+    const fetchAllData = async () => {
       try {
-        const res = await fetch(`${DOMAIN}/api/users`);
-        const data = await res.json();
+        const [usersRes, chatsRes, messagesRes] = await Promise.all([
+          fetch(`${SERVER_URL}/api/users`),
+          fetch(`${SERVER_URL}/api/chats`),
+          fetch(`${SERVER_URL}/api/messages`),
+        ]);
 
-        setUsers(data);
-        console.log(data);
-      } catch {
-        (err) => console.log("Couldnt load users", err);
+        const [usersData, chatsData, messagesData] = await Promise.all([
+          usersRes.json(),
+          chatsRes.json(),
+          messagesRes.json(),
+        ]);
+
+        setUsers(usersData);
+        setChats(chatsData);
+        setMessages(messagesData);
+      } catch (err) {
+        console.error("Failed to load initial data:", err);
       }
     };
-    fetchInitUsersData();
 
-    // Fetch initial list of chats from server
-    const fetchInitChatsData = async () => {
-      try {
-        const res = await fetch(`${DOMAIN}/api/chats`);
-        const data = await res.json();
+    fetchAllData();
 
-        setChats(data);
-        console.log(data);
-      } catch {
-        (err) => console.log("Couldnt load chats", err);
-      }
-    };
-    fetchInitChatsData();
+    // ── Real-time event handlers ─────────────────────────────────────────────
 
-    // Fetch initial messages list from server
-    const fetchInitMessagesData = async () => {
-      try {
-        const res = await fetch(`${DOMAIN}/api/messages`);
-        const data = await res.json();
-
-        setMessages(data);
-        console.log(data);
-      } catch {
-        (err) => console.log("Couldnt load messages", err);
-      }
-    };
-    fetchInitMessagesData();
-
-    // Listen for new user registration events from socket
-    socket.on("account_created", (newAccount) => {
-      setUsers((prevUsers) => {
-        return [...prevUsers, newAccount];
-      });
+    // A new user registered on another client — add them to the local list
+    socket.on("user_registered", (newUser) => {
+      setUsers((prev) => [...prev, newUser]);
     });
 
-    // Listen for new chat creation events from socket
+    // A new chat was created on another client
     socket.on("chat_created", (newChat) => {
-      setChats((prevChats) => [...prevChats, newChat]);
+      setChats((prev) => [...prev, newChat]);
     });
 
+    // A new message was delivered to this user's room
     socket.on("new_message", (newMessage) => {
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      setMessages((prev) => [...prev, newMessage]);
     });
 
-    socket.on("message_edited", (editedMessage) => {
-      setMessages((prevMessages) => {
-        return prevMessages.map((msg) => {
-          if (msg.messageId === editedMessage.messageId) {
-            return editedMessage;
-          }
-          return msg;
-        });
-      });
-    });
-
-    socket.on("message_deleted", ({ deletedMessage, deleteMode }) => {
-      if (deleteMode === "hide") {
-        setMessages((prevMessages) => {
-          return prevMessages.map((msg) => {
-            if (msg.messageId === deletedMessage.messageId) {
-              return deletedMessage;
-            }
-            return msg;
-          });
-        });
-      }
-
-      // Permanent mode: completely remove message from array
-      if (deleteMode === "permanent") {
-        setMessages((prevMessages) => {
-          return prevMessages.filter((msg) => {
-            if (msg.messageId === deletedMessage.messageId) return false;
-            return true;
-          });
-        });
-      }
-    });
-    return () => {
-      socket.off("account_created");
-      socket.off("chat_created");
-      socket.off("new_message");
-      socket.off("message_edited");
-    };
-  }, []);
-
-  //=========================================== Action Functions ==========================
-
-  // Register a new user account via API and auto-login on success
-  const createAccount = async ({ userName, userPassword }) => {
-    const res = await fetch(`${DOMAIN}/api/users/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userName, userPassword }),
-    });
-    const data = await res.json();
-
-    if (!res.ok) {
-      Swal.fire({
-        title: data.error || "Registration Failed",
-        icon: "error",
-      });
-      return false;
-    }
-
-    loginAccount(data);
-    return true;
-  };
-
-  // Authenticate user credentials and set session state
-  const loginAccount = async ({ userName, userPassword }) => {
-    const res = await fetch(`${DOMAIN}/api/users/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userName, userPassword }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      Swal.fire({
-        title: "Wrong Details",
-        text: data.error || "One or more details is wrong",
-        timer: 2000,
-        icon: "error",
-      });
-      return false;
-    }
-
-    Swal.fire({
-      title: "logged In Successfuly",
-      timer: 1500,
-      icon: "success",
-      showConfirmButton: false,
-    });
-
-    setLoggedInUsername(data.userName);
-    socket.emit("account_logged_in", data.userId);
-    return true;
-  };
-
-  // Find or create a chat with the selected user, then mark it as opened
-  const openChat = async (userId) => {
-    let selectedChat = chats.find((chat) => {
-      return (
-        chat.participants.includes(loggedInAccount.userId) &&
-        chat.participants.includes(userId)
+    // Another participant edited a message
+    socket.on("message_edited", (updatedMessage) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.messageId === updatedMessage.messageId ? updatedMessage : msg
+        )
       );
     });
 
-    if (!selectedChat) {
-      selectedChat = await getOrCreateChat(userId);
+    // A message was hidden or permanently deleted
+    socket.on("message_deleted", ({ deletedMessage, deleteMode }) => {
+      if (deleteMode === "hide") {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.messageId === deletedMessage.messageId ? deletedMessage : msg
+          )
+        );
+      } else if (deleteMode === "permanent") {
+        setMessages((prev) =>
+          prev.filter((msg) => msg.messageId !== deletedMessage.messageId)
+        );
+      }
+    });
+
+    // Clean up all listeners when the context unmounts (prevents duplicate handlers)
+    return () => {
+      socket.off("user_registered");
+      socket.off("chat_created");
+      socket.off("new_message");
+      socket.off("message_edited");
+      socket.off("message_deleted");
+    };
+  }, []);
+
+  // ── Actions ────────────────────────────────────────────────────────────────
+
+  // Register a new account, then automatically log the user in
+  const createAccount = async ({ userName, userPassword }) => {
+    const res = await fetch(`${SERVER_URL}/api/users/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userName, userPassword }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      Swal.fire({ title: data.error || "Registration failed", icon: "error" });
+      return false;
     }
 
-    setOpenedChatId(selectedChat.chatId);
+    // Auto-login with the original credentials (not the response object)
+    await loginAccount({ userName, userPassword });
+    return true;
   };
 
-  // Post request to create a new chat between current user and target user
-  const getOrCreateChat = async (userId) => {
-    const res = await fetch(`${DOMAIN}/api/chats/create`, {
+  // Verify credentials with the server and open the user's session
+  const loginAccount = async ({ userName, userPassword }) => {
+    const res = await fetch(`${SERVER_URL}/api/users/login`, {
       method: "POST",
-      headers: { "Content-type": "application/json" },
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userName, userPassword }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      Swal.fire({
+        title: "Login failed",
+        text: data.error || "Incorrect username or password",
+        icon: "error",
+        timer: 2000,
+      });
+      return false;
+    }
+
+    setLoggedInUsername(data.userName);
+
+    // Connect the socket and join the user's personal room for targeted delivery
+    socket.connect();
+    socket.emit("user_connected", data.userId);
+
+    return true;
+  };
+
+  // Log out the current user and tear down the socket connection
+  const logoutAccount = () => {
+    setLoggedInUsername(null);
+    setOpenedChatId(null);
+    socket.disconnect();
+  };
+
+  // Open an existing chat or create a new one, then navigate into it
+  const openChat = async (targetUserId) => {
+    // Check local state first to avoid an unnecessary round-trip
+    const existingChat = chats.find(
+      (chat) =>
+        chat.participants.includes(loggedInAccount.userId) &&
+        chat.participants.includes(targetUserId)
+    );
+
+    if (existingChat) {
+      setOpenedChatId(existingChat.chatId);
+      return;
+    }
+
+    // No local chat found — create one on the server
+    const res = await fetch(`${SERVER_URL}/api/chats/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         loggedInAccountUserId: loggedInAccount.userId,
-        userId,
+        userId: targetUserId,
       }),
     });
     const data = await res.json();
 
     if (!res.ok) {
-      console.log(data.error);
-      return false;
+      console.error("Failed to create chat:", data.error);
+      return;
     }
 
-    return data;
+    setOpenedChatId(data.chatId);
   };
 
-  // Send a message
+  // Send a text (or typed) message to the currently open chat
   const sendMessage = async (chatId, messageType, messageContent) => {
-    await fetch(`${DOMAIN}/api/messages/send`, {
+    const res = await fetch(`${SERVER_URL}/api/messages/send`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -230,72 +209,73 @@ export default function ChatContext({ children }) {
         messageContent,
       }),
     });
+
+    if (!res.ok) {
+      const data = await res.json();
+      console.error("Failed to send message:", data.error);
+    }
   };
 
-  // Update content of an existing message in local state
-  const editMessage = async (msgId, newContent) => {
-    await fetch(`${DOMAIN}/api/messages/edit`, {
-      method: "POST",
+  // Edit the text content of an existing message
+  const editMessage = async (messageId, newContent) => {
+    const res = await fetch(`${SERVER_URL}/api/messages/edit`, {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chatId: openedChat.chatId, msgId, newContent }),
+      body: JSON.stringify({ chatId: openedChat.chatId, messageId, newContent }),
     });
+
+    if (!res.ok) {
+      const data = await res.json();
+      console.error("Failed to edit message:", data.error);
+    }
   };
 
-  // Delete message: either hide it for current user or remove permanently for all
-  const deleteMessage = async (msgId, deleteMode, deleterId) => {
-    await fetch(`${DOMAIN}/api/messages/delete`, {
-      method: "POST",
+  // Hide a message for the current user, or delete it permanently for everyone
+  const deleteMessage = async (messageId, deleteMode, deleterId) => {
+    const res = await fetch(`${SERVER_URL}/api/messages/delete`, {
+      method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chatId: openedChat.chatId,
-        msgId,
+        messageId,
         deleteMode,
         deleterId,
       }),
     });
+
+    if (!res.ok) {
+      const data = await res.json();
+      console.error("Failed to delete message:", data.error);
+    }
   };
 
-  //=========================================== Context Value Bundling ==========================
+  // ── Context Value ──────────────────────────────────────────────────────────
 
-  const dataContextValue = {
+  const dataValue = {
     loggedInAccount,
-    setLoggedInUsername,
     users,
-    openedChat,
     chats,
-    setOpenedChatId,
     messages,
+    openedChat,
+    setOpenedChatId,
+    setLoggedInUsername,
   };
-  const actionsContextValue = {
+
+  const actionsValue = {
     createAccount,
     loginAccount,
+    logoutAccount,
     openChat,
     sendMessage,
-    deleteMessage,
     editMessage,
+    deleteMessage,
   };
 
-  // Render context providers wrapping child components
   return (
-    <ChatDataContext.Provider value={dataContextValue}>
-      <ChatActionsContext.Provider value={actionsContextValue}>
+    <ChatDataContext.Provider value={dataValue}>
+      <ChatActionsContext.Provider value={actionsValue}>
         {children}
       </ChatActionsContext.Provider>
     </ChatDataContext.Provider>
   );
 }
-
-//=========================================== Exports & Custom Hooks ==========================
-
-export const ChatDataContext = createContext(null);
-export const ChatActionsContext = createContext(null);
-
-// Custom hook to consume chat data state
-export const useChatDataContext = () => {
-  return useContext(ChatDataContext);
-};
-
-// Custom hook to consume chat actions and handlers
-export const useChatActionsContext = () => {
-  return useContext(ChatActionsContext);
-};

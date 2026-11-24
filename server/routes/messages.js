@@ -3,67 +3,79 @@ import * as store from "../data/store.js";
 
 const router = express.Router();
 
-// GET /api/messages - Fetch all stored messages
+// Helper: emit a socket event to all participants of a given chat
+const emitToParticipants = (io, chatId, eventName, payload) => {
+  const chat = store.getChatById(chatId);
+  if (!chat) return;
+
+  const participantIds = [...new Set(chat.participants)];
+  participantIds.forEach((participantId) => {
+    io.to(participantId).emit(eventName, payload);
+  });
+};
+
+// GET /api/messages — return all stored messages
 router.get("/", (req, res) => {
-  res.json(store.getMessagesData());
+  res.json(store.getAllMessages());
 });
 
+// POST /api/messages/send — save a new message and deliver it to chat participants
 router.post("/send", (req, res) => {
   try {
-    const newMessage = store.sendMessage(req.body);
+    const { loggedInAccountUserId, chatId, messageType, messageContent } =
+      req.body;
 
-    const io = req.app.get("io");
-    const chat = store.getChatById(req.body.chatId);
-
-    const chatParticipants = [...new Set(chat.participants)];
-    chatParticipants.forEach((pid) => {
-      io.to(pid).emit("new_message", newMessage);
+    const newMessage = store.createMessage({
+      senderId: loggedInAccountUserId,
+      chatId,
+      messageType,
+      messageContent,
     });
 
-    res.status(201).json("");
+    const io = req.app.get("io");
+    emitToParticipants(io, chatId, "new_message", newMessage);
+
+    res.status(201).json(newMessage);
   } catch (err) {
-    console.log(err);
-    res.status(400);
+    console.error("Error sending message:", err);
+    res.status(400).json({ error: err.message });
   }
 });
 
-router.post("/edit", (req, res) => {
+// PATCH /api/messages/edit — update the text content of an existing message
+router.patch("/edit", (req, res) => {
   try {
-    const editedMessage = store.editMessage(req.body);
+    const { chatId, messageId, newContent } = req.body;
 
-    const io = req.app.get("io");
-
-    const chat = store.getChatById(req.body.chatId);
-    const chatParticipants = [...new Set(chat.participants)];
-
-    chatParticipants.forEach((pid) => {
-      io.to(pid).emit("message_edited", editedMessage);
+    const updatedMessage = store.updateMessageContent({
+      messageId,
+      newContent,
     });
 
-    res.status(201).json("");
+    const io = req.app.get("io");
+    emitToParticipants(io, chatId, "message_edited", updatedMessage);
+
+    res.status(200).json(updatedMessage);
   } catch (err) {
-    console.log(err);
-    res.status(400);
+    console.error("Error editing message:", err);
+    res.status(400).json({ error: err.message });
   }
 });
 
-router.post("/delete", (req, res) => {
+// DELETE /api/messages/delete — hide or permanently remove a message
+router.delete("/delete", (req, res) => {
   try {
-    const { deletedMessage, deleteMode } = store.deleteMessage(req.body);
+    const { chatId, messageId, deleteMode, deleterId } = req.body;
+
+    const result = store.removeMessage({ messageId, deleteMode, deleterId });
 
     const io = req.app.get("io");
-    const chat = store.getChatById(req.body.chatId);
+    emitToParticipants(io, chatId, "message_deleted", result);
 
-    const chatParticipants = [...new Set(chat.participants)];
-
-    chatParticipants.forEach((pid) => {
-      io.to(pid).emit("message_deleted", { deletedMessage, deleteMode });
-    });
-
-    res.status(201).json(" ");
+    res.status(200).json(result);
   } catch (err) {
-    console.log(err);
-    res.status(400).json(" ");
+    console.error("Error deleting message:", err);
+    res.status(400).json({ error: err.message });
   }
 });
 

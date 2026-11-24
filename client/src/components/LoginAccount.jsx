@@ -2,58 +2,37 @@ import { useState } from "react";
 import { useChatActionsContext } from "../context/ChatContext";
 import Swal from "sweetalert2";
 
-// Login form component to authenticate an existing user
 export default function LoginAccount() {
   const { loginAccount } = useChatActionsContext();
 
-  // Form input state
-  const [credentials, setCredentials] = useState({
-    userName: "",
-    userPassword: "",
-  });
+  const [credentials, setCredentials] = useState({ userName: "", userPassword: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Track changes to form inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setCredentials((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setCredentials((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Validate credentials and trigger login action
-  const handleSubmit = (e) => {
+  // Validate and submit the login form
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prevent submission if fields are empty
     if (!credentials.userName.trim() || !credentials.userPassword.trim()) {
-      Swal.fire({
-        title: "Missing Details",
-        timer: 1000,
-        showConfirmButton: false,
-      });
+      Swal.fire({ title: "Please fill in all fields", icon: "warning", timer: 1500, showConfirmButton: false });
       return;
     }
 
-    // Call login handler and clear form inputs on success
-    const isSuccess = loginAccount(credentials);
+    setIsSubmitting(true);
+    const success = await loginAccount(credentials);
+    setIsSubmitting(false);
 
-    if (isSuccess) {
-      Swal.fire({
-        title: "Logged In Successfully",
-        timer: 1000,
-        showConfirmButton: false,
-      });
-      setCredentials({
-        userName: "",
-        userPassword: "",
-      });
+    if (success) {
+      setCredentials({ userName: "", userPassword: "" });
     }
   };
 
-  // Render login form UI
   return (
-    <div style={{ margin: " 0 auto" }}>
+    <div style={{ margin: "0 auto" }}>
       <h1>Log Into Your Account</h1>
       <form
         style={{
@@ -66,25 +45,30 @@ export default function LoginAccount() {
         }}
         onSubmit={handleSubmit}
       >
-        <label htmlFor="userName">Enter your user name</label>
+        <label htmlFor="login-username">Username</label>
         <input
           type="text"
           name="userName"
-          id="userName"
-          placeholder="Israel Nahari"
+          id="login-username"
+          placeholder="Israel Israeli"
           value={credentials.userName}
           onChange={handleInputChange}
+          autoComplete="username"
+          autoFocus
         />
-        <label htmlFor="userPassword">Enter your password</label>
+        <label htmlFor="login-password">Password</label>
         <input
           type="password"
           name="userPassword"
-          id="userPassword"
-          placeholder="Israel Nahari"
+          id="login-password"
+          placeholder="••••••••"
           value={credentials.userPassword}
           onChange={handleInputChange}
+          autoComplete="current-password"
         />
-        <button type="submit">Login</button>
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Logging in..." : "Login"}
+        </button>
       </form>
     </div>
   );
