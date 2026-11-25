@@ -6,6 +6,11 @@ import usersRouter from "./routes/users.js";
 import chatsRouter from "./routes/chats.js";
 import messagesRouter from "./routes/messages.js";
 import chatHandler from "./sockets/chatHandler.js";
+import { connectDB } from "./config/db.js";
+import dotenv from "dotenv";
+
+dotenv.config();
+connectDB();
 
 const app = express();
 const server = http.createServer(app);
