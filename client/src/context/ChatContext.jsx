@@ -26,7 +26,8 @@ export default function ChatContext({ children }) {
   const [openedChatId, setOpenedChatId] = useState(null);
 
   // Derived values — computed from state, not stored separately
-  const loggedInAccount = users.find((u) => u.userName === loggedInUsername) ?? null;
+  const loggedInAccount =
+    users.find((u) => u.userName === loggedInUsername) ?? null;
   const openedChat = chats.find((c) => c.chatId === openedChatId) ?? null;
 
   // ── Initial Data Fetch + Socket Listeners ──────────────────────────────────
@@ -50,6 +51,9 @@ export default function ChatContext({ children }) {
         setUsers(usersData);
         setChats(chatsData);
         setMessages(messagesData);
+        console.log(usersData);
+        console.log(chatsData);
+        console.log(messagesData);
       } catch (err) {
         console.error("Failed to load initial data:", err);
       }
@@ -62,6 +66,8 @@ export default function ChatContext({ children }) {
     // A new user registered on another client — add them to the local list
     socket.on("user_registered", (newUser) => {
       setUsers((prev) => [...prev, newUser]);
+
+      console.error(users);
     });
 
     // A new chat was created on another client
@@ -78,8 +84,8 @@ export default function ChatContext({ children }) {
     socket.on("message_edited", (updatedMessage) => {
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.messageId === updatedMessage.messageId ? updatedMessage : msg
-        )
+          msg.messageId === updatedMessage.messageId ? updatedMessage : msg,
+        ),
       );
     });
 
@@ -88,12 +94,12 @@ export default function ChatContext({ children }) {
       if (deleteMode === "hide") {
         setMessages((prev) =>
           prev.map((msg) =>
-            msg.messageId === deletedMessage.messageId ? deletedMessage : msg
-          )
+            msg.messageId === deletedMessage.messageId ? deletedMessage : msg,
+          ),
         );
       } else if (deleteMode === "permanent") {
         setMessages((prev) =>
-          prev.filter((msg) => msg.messageId !== deletedMessage.messageId)
+          prev.filter((msg) => msg.messageId !== deletedMessage.messageId),
         );
       }
     });
@@ -124,6 +130,9 @@ export default function ChatContext({ children }) {
       return false;
     }
 
+    setUsers((prev) => [...prev, data]);
+
+    console.log(users);
     // Auto-login with the original credentials (not the response object)
     await loginAccount({ userName, userPassword });
     return true;
@@ -170,7 +179,7 @@ export default function ChatContext({ children }) {
     const existingChat = chats.find(
       (chat) =>
         chat.participants.includes(loggedInAccount.userId) &&
-        chat.participants.includes(targetUserId)
+        chat.participants.includes(targetUserId),
     );
 
     if (existingChat) {
@@ -221,7 +230,11 @@ export default function ChatContext({ children }) {
     const res = await fetch(`${SERVER_URL}/api/messages/edit`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chatId: openedChat.chatId, messageId, newContent }),
+      body: JSON.stringify({
+        chatId: openedChat.chatId,
+        messageId,
+        newContent,
+      }),
     });
 
     if (!res.ok) {

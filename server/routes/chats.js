@@ -4,14 +4,14 @@ import * as store from "../data/store.js";
 const router = express.Router();
 
 // GET /api/chats — return all stored chats
-router.get("/", (req, res) => {
-  res.json(store.getAllChats());
+router.get("/", async (req, res) => {
+  res.json(await store.getAllChats());
 });
 
 // POST /api/chats/create — find or create a chat between two users
-router.post("/create", (req, res) => {
+router.post("/create", async (req, res) => {
   try {
-    const { chat, isNew } = store.getOrCreateChat(req.body);
+    const { chat, isNew } = await store.getOrCreateChat(req.body);
 
     if (isNew) {
       // Notify all clients only when a brand new chat is created
