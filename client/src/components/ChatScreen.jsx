@@ -6,19 +6,7 @@ import ChatScreenChat from "./chatScreenComponents/ChatScreenChat";
 // Container component for the main chat interface
 export default function ChatScreen() {
   return (
-    <div
-      style={{
-        border: "2px solid silver",
-        height: "80vh",
-        width: "50vw",
-        margin: "auto",
-        borderRadius: "25px",
-        backgroundColor: "white",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}
-    >
+    <div className="w-full max-w-4xl h-screen md:h-[85vh] bg-zinc-900 border-x md:border border-zinc-800 md:rounded-2xl shadow-2xl flex flex-col overflow-hidden">
       {/* Top bar displaying user info or active chat title */}
       <ChatScreenHeader />
 

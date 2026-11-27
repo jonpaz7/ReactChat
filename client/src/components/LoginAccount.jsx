@@ -5,7 +5,10 @@ import Swal from "sweetalert2";
 export default function LoginAccount() {
   const { loginAccount } = useChatActionsContext();
 
-  const [credentials, setCredentials] = useState({ userName: "", userPassword: "" });
+  const [credentials, setCredentials] = useState({
+    userName: "",
+    userPassword: "",
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e) => {
@@ -18,7 +21,12 @@ export default function LoginAccount() {
     e.preventDefault();
 
     if (!credentials.userName.trim() || !credentials.userPassword.trim()) {
-      Swal.fire({ title: "Please fill in all fields", icon: "warning", timer: 1500, showConfirmButton: false });
+      Swal.fire({
+        title: "Please fill in all fields",
+        icon: "warning",
+        timer: 1500,
+        showConfirmButton: false,
+      });
       return;
     }
 
@@ -32,20 +40,14 @@ export default function LoginAccount() {
   };
 
   return (
-    <div style={{ margin: "0 auto" }}>
-      <h1>Log Into Your Account</h1>
-      <form
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          width: "fit-content",
-          alignItems: "center",
-          margin: "0 auto",
-          gap: "5px",
-        }}
-        onSubmit={handleSubmit}
-      >
-        <label htmlFor="login-username">Username</label>
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+      <div className="flex flex-col gap-1.5">
+        <label
+          htmlFor="login-username"
+          className="text-xs font-medium uppercase tracking-wider text-zinc-400"
+        >
+          Username
+        </label>
         <input
           type="text"
           name="userName"
@@ -55,8 +57,17 @@ export default function LoginAccount() {
           onChange={handleInputChange}
           autoComplete="username"
           autoFocus
+          className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
         />
-        <label htmlFor="login-password">Password</label>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label
+          htmlFor="login-password"
+          className="text-xs font-medium uppercase tracking-wider text-zinc-400"
+        >
+          Password
+        </label>
         <input
           type="password"
           name="userPassword"
@@ -65,11 +76,17 @@ export default function LoginAccount() {
           value={credentials.userPassword}
           onChange={handleInputChange}
           autoComplete="current-password"
+          className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
         />
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Logging in..." : "Login"}
-        </button>
-      </form>
-    </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="mt-2 w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 font-semibold text-sm rounded-xl transition-all shadow-lg shadow-amber-500/10 cursor-pointer"
+      >
+        {isSubmitting ? "Logging in..." : "Sign In"}
+      </button>
+    </form>
   );
 }

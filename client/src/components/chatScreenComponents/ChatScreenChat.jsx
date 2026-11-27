@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { useChatDataContext, useChatActionsContext } from "../../context/ChatContext";
+import {
+  useChatDataContext,
+  useChatActionsContext,
+} from "../../context/ChatContext";
 import ChatContextMenu from "./ChatContextMenu";
 
 export default function ChatScreenChat() {
@@ -66,21 +69,15 @@ export default function ChatScreenChat() {
         />
       )}
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+      <div className="flex-1 flex flex-col min-h-0 bg-zinc-950/60">
         {/* Scrollable message list */}
-        <div
-          style={{
-            flex: 1,
-            border: "1px solid #e0e0e0",
-            display: "flex",
-            flexDirection: "column",
-            overflowY: "auto",
-          }}
-        >
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2.5">
           {visibleMessages.length === 0 && (
-            <p style={{ textAlign: "center", color: "#aaa", marginTop: "20px" }}>
-              No messages yet. Say hello! 👋
-            </p>
+            <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
+              <p className="text-sm text-zinc-500">
+                No messages yet. Say hello! 👋
+              </p>
+            </div>
           )}
 
           {visibleMessages.map((msg) => {
@@ -89,23 +86,25 @@ export default function ChatScreenChat() {
             const senderName = sender?.userName ?? "Unknown";
 
             return (
-              <p
+              <div
                 key={msg.messageId}
                 onContextMenu={(e) => openContextMenu(e, msg)}
                 title="Right-click for options"
-                style={{
-                  textAlign: "left",
-                  backgroundColor: isMine ? "#DCF8C6" : "#E7F3FF",
-                  width: "fit-content",
-                  padding: "2px 6px",
-                  margin: isMine ? "2px auto 2px 2px" : "2px 2px 2px auto",
-                  borderRadius: "5px",
-                  cursor: "default",
-                }}
+                className={`max-w-[78%] sm:max-w-[70%] px-3.5 py-2 text-sm leading-relaxed select-text cursor-default transition-all ${
+                  isMine
+                    ? "ml-auto bg-amber-500 text-zinc-950 rounded-2xl rounded-br-sm shadow-md shadow-amber-500/10"
+                    : "mr-auto bg-zinc-800/90 text-zinc-100 border border-zinc-700/60 rounded-2xl rounded-bl-sm"
+                }`}
               >
-                <strong>{senderName}: </strong>
-                {msg.content}
-              </p>
+                {!isMine && (
+                  <div className="text-[11px] font-semibold text-amber-400 mb-0.5">
+                    {senderName}
+                  </div>
+                )}
+                <p className="m-0 break-words whitespace-pre-wrap">
+                  {msg.content}
+                </p>
+              </div>
             );
           })}
 
@@ -114,17 +113,34 @@ export default function ChatScreenChat() {
         </div>
 
         {/* Message input bar */}
-        <div style={{ display: "flex", padding: "8px", gap: "8px" }}>
+        <div className="p-3 bg-zinc-900 border-t border-zinc-800 flex items-center gap-2 shrink-0">
           <input
             ref={inputRef}
-            style={{ flex: 1 }}
             placeholder="Type a message... (Enter to send)"
             value={draftMessage}
             onChange={(e) => setDraftMessage(e.target.value)}
             onKeyDown={handleKeyDown}
+            className="flex-1 px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
           />
-          <button onClick={handleSend} disabled={!draftMessage.trim()}>
-            Send
+          <button
+            onClick={handleSend}
+            disabled={!draftMessage.trim()}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-950 font-semibold text-sm rounded-xl transition-all cursor-pointer shrink-0"
+          >
+            <span>Send</span>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5 12h14M12 5l7 7-7 7"
+              />
+            </svg>
           </button>
         </div>
       </div>
